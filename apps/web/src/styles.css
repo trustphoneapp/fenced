@@ -305,6 +305,7 @@ button:focus-visible {
   color: white;
 }
 .rev {
+  white-space: nowrap;
   padding: 0.05rem 0.45rem;
   border-radius: 999px;
   background: white;
@@ -540,6 +541,15 @@ footer {
 @media (max-width: 34rem) {
   .flow {
     grid-template-columns: 1fr;
+  }
+  /* The label reserves 11rem on wide screens; on a phone that leaves the pills no room. */
+  .counts .mono {
+    min-width: 0;
+    flex-basis: 100%;
+  }
+  .counts li {
+    flex-wrap: wrap;
+    gap: 0.4rem;
   }
   .flow li {
     min-height: 0;

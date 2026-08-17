@@ -279,14 +279,7 @@ function counts(value: unknown): ProofCounts | undefined {
 /** Reject any proofs payload that still carries a 48-hex id, a URL, a cluster host or a db user. */
 const forbiddenInProofs = /[0-9a-f]{48}|cockroachlabs\.cloud|continuity_(app|migrator)/u;
 function proofs(value: unknown): Proofs | undefined {
-  const row = record(value, [
-    "indexColumns",
-    "indexName",
-    "mcp",
-    "outcome",
-    "recallPlan",
-    "step",
-  ]);
+  const row = record(value, ["indexColumns", "indexName", "mcp", "outcome", "recallPlan", "step"]);
   if (!row) return undefined;
   const scope = record(row.mcp, ["scoped", "unscoped"]);
   const scoped = scope && counts(scope.scoped);

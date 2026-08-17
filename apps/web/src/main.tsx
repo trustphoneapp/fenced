@@ -367,6 +367,8 @@ function Architecture({ history }: { history: readonly LiveResult[] }) {
   );
 }
 
+const rowLabel = (count: number) => `${count} ${count === 1 ? "row" : "rows"}`;
+
 function CountRow({
   label,
   unscoped,
@@ -379,9 +381,9 @@ function CountRow({
   return (
     <li>
       <span className="mono">{label}</span>
-      <span className="rev">{unscoped} rows</span>
+      <span className="rev">{rowLabel(unscoped)}</span>
       <span aria-hidden="true">→</span>
-      <span className={scoped > unscoped ? "rev changed-count" : "rev"}>{scoped} rows</span>
+      <span className={scoped > unscoped ? "rev changed-count" : "rev"}>{rowLabel(scoped)}</span>
     </li>
   );
 }
