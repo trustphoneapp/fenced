@@ -64,7 +64,7 @@ Live endpoints (deployed in `us-east-1`, account-isolated, arm64):
 | Fixed five-step orchestrator and receipts | Yes, E-0093 | All five steps return `200` on both the CloudFront and API Gateway origins |
 | Strict HTTP boundary | Yes, E-0094 | `GET /api/health` returns `200 {"status":"healthy"}` |
 | Live-only React interface | Yes, E-0095 | Served `200` through CloudFront |
-| CockroachDB schema and vector indexes | Yes, migrations `0001`–`0010` | Applied to CockroachDB v26.2.5; 30 relations; both vector indexes present |
+| CockroachDB schema and vector indexes | Yes, migrations `0001`–`0011` | Applied to CockroachDB v26.2.5; 30 relations; both vector indexes present |
 | Least-privilege database identity | Yes | `continuity_app` inherits only executor / reservation / session roles; each step runs under `SET LOCAL ROLE` |
 | Policy-withheld disclosure | Yes | Live receipts recall 2 revisions and withhold 1 with `reason: sensitivity_policy` |
 | Correction lineage | Yes | `correct` supersedes revision 1 to 2; `ask_after` answers from revision 2 |
@@ -115,6 +115,31 @@ connected agent sees nothing until it binds one:
 Binding uses `set_config`, which is itself a `SELECT`, so scoping stays inside the read-only tool
 surface. An unscoped or wrongly scoped agent reads an empty database rather than another tenant's
 receipts.
+
+### Judge-clickable proofs
+
+The demo page has a second button, **Show Cockroach proofs**. It calls the same `POST /api/demo`
+contract with the repeatable read-only side step `{"step":"proofs"}`, which requires an existing
+session cookie, never advances the five-step beat, and reaches no provider (`Titan 0 · Nova 0`).
+It returns three live results:
+
+| Card | What it runs | Honest reading |
+| --- | --- | --- |
+| Managed MCP read scoping | The three published pack queries under `SET LOCAL ROLE zc_continuity_mcp_reader`, first unscoped and then with the session's scope bound | `0 / 0 / 0` becomes `1 / 1 / 2`. Same role and same SQL as the pack, executed by the demo API. This is **not** a public MCP endpoint and no database credential is issued to anyone. |
+| Live recall plan | `EXPLAIN` of the query the ask steps actually run, under row-level security | The vector index is **not** named. That is the true result for the live path. |
+| Vector index definition | `SHOW INDEXES` on `continuity.memory_facts` | The index exists with its exact column order. Selecting it in a plan requires an identity that bypasses row-level security, which nothing in the request path has. |
+
+Tenant ids, hosts, connection URLs and database users are redacted in the adapter, re-checked in the
+application layer, re-checked again at the HTTP boundary, and re-checked once more in the browser. If
+the live recall plan ever named the vector index, the response would be refused rather than served,
+because publishing it would contradict the claim above.
+
+Migration `0011` grants `continuity_app` membership of `zc_continuity_mcp_reader`. The reader stays
+`NOLOGIN`, gains no `SELECT` on `continuity.memory_facts`, and gains no `BYPASSRLS`; the apply script
+verifies all three negatives. CockroachDB v26.2.5 has no per-membership `INHERIT FALSE` and
+`continuity_app` has `rolinherit = true`, so the membership also confers implicit `SELECT` on the
+three summary views. That confers no readable rows: the views are scope-gated by policy, so an
+unbound session reads zero rows either way.
 
 Implemented, tested, deployed, and demonstrated are intentionally different labels, and the table
 above keeps them apart rather than collapsing them into a single claim.

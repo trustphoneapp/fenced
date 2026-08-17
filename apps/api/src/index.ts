@@ -21,7 +21,10 @@ const steps = Object.freeze([
   "ask_after",
   "latest_receipt",
 ] as const);
-type HackathonLiveStep = (typeof steps)[number];
+/** Repeatable read-only side step; never advances the beat, never reaches a provider. */
+const proofsStep = "proofs" as const;
+const requestSteps = Object.freeze([...steps, proofsStep] as const);
+type HackathonRequestStep = (typeof requestSteps)[number];
 const restrictedSentinel = "Internal budget ceiling is nine units — restricted synthetic";
 const restrictedFactId = "2".repeat(48);
 const receiptProfile = Object.freeze({
@@ -49,7 +52,7 @@ export type HttpApiV2Response = Readonly<{
 }>;
 type LivePort = Readonly<{
   readonly run: (
-    input: Readonly<{ sessionDigest: string; step: HackathonLiveStep }>,
+    input: Readonly<{ sessionDigest: string; step: HackathonRequestStep }>,
   ) => Promise<unknown>;
 }>;
 function isProxy(value: unknown): boolean {
@@ -195,9 +198,9 @@ function request(event: HttpApiV2Event): Readonly<{ method: string; path: string
     : undefined;
 }
 
-function parseBody(body: unknown): HackathonLiveStep | undefined {
+function parseBody(body: unknown): HackathonRequestStep | undefined {
   if (typeof body !== "string" || utf8Length(body) > maximumBodyBytes) return undefined;
-  return steps.find((step) => body === `{"step":"${step}"}`);
+  return requestSteps.find((step) => body === `{"step":"${step}"}`);
 }
 
 function session(event: HttpApiV2Event): string | undefined {
@@ -303,7 +306,67 @@ function receipt(value: unknown): Record<string, unknown> | undefined {
   return Object.freeze({ ...row });
 }
 
-function output(value: unknown, step: HackathonLiveStep): Record<string, unknown> | undefined {
+/** Counts only: three small non-negative integers, nothing identifying. */
+function proofCounts(value: unknown): Record<string, unknown> | undefined {
+  const row = exact(object(value), ["evidenceLineage", "receiptSummary", "taskStatus"]);
+  if (!row) return undefined;
+  return Object.values(row).every(
+    (count) =>
+      typeof count === "number" && Number.isSafeInteger(count) && count >= 0 && count <= 1000,
+  )
+    ? Object.freeze({ ...row })
+    : undefined;
+}
+
+/** Final gate before proofs reach the browser: refuse anything that still looks identifying. */
+const forbiddenInProofs =
+  /[0-9a-f]{48}|postgres(ql)?:\/\/|cockroachlabs\.cloud|continuity_(app|migrator)/u;
+function proofsOutput(value: unknown): Record<string, unknown> | undefined {
+  const row = exact(object(value), [
+    "indexColumns",
+    "indexName",
+    "mcp",
+    "outcome",
+    "recallPlan",
+    "step",
+  ]);
+  if (!row || row.outcome !== "succeeded" || row.step !== proofsStep) return undefined;
+  const scope = exact(object(row.mcp), ["scoped", "unscoped"]);
+  const unscoped = scope && proofCounts(scope.unscoped);
+  const scoped = scope && proofCounts(scope.scoped);
+  const plan = row.recallPlan;
+  const columns = row.indexColumns;
+  if (
+    !unscoped ||
+    !scoped ||
+    !text(row.indexName, 128) ||
+    !Array.isArray(plan) ||
+    plan.length === 0 ||
+    plan.length > 200 ||
+    !plan.every((line) => typeof line === "string" && line.length <= 400) ||
+    !Array.isArray(columns) ||
+    columns.length === 0 ||
+    columns.length > 32 ||
+    !columns.every((column) => typeof column === "string" && column.length <= 128)
+  )
+    return undefined;
+  const joined = `${plan.join("\n")}\n${columns.join("\n")}\n${row.indexName}`;
+  // The live recall plan must not name the vector index; publishing that would contradict the
+  // page's own claim, so refuse rather than serve it.
+  if (plan.join("\n").includes(String(row.indexName)) || forbiddenInProofs.test(joined))
+    return undefined;
+  return Object.freeze({
+    indexColumns: Object.freeze([...columns]),
+    indexName: row.indexName,
+    mcp: Object.freeze({ scoped, unscoped }),
+    outcome: "succeeded",
+    recallPlan: Object.freeze([...plan]),
+    step: proofsStep,
+  });
+}
+
+function output(value: unknown, step: HackathonRequestStep): Record<string, unknown> | undefined {
+  if (step === proofsStep) return proofsOutput(value);
   const row = object(value);
   if (!row || row.outcome !== "succeeded" || row.step !== step) return undefined;
   if (step === "start") return exact(row, ["outcome", "step"]);

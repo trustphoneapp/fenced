@@ -10,6 +10,19 @@ export const hackathonLiveSteps = Object.freeze([
 
 export type HackathonLiveStep = (typeof hackathonLiveSteps)[number];
 
+/**
+ * A repeatable, read-only side step. It is deliberately NOT a member of hackathonLiveSteps: it
+ * never advances the five-step beat and is excluded from the monotonic transition rule, so a judge
+ * may run it any number of times once a session exists without disturbing the demo sequence.
+ */
+export const hackathonProofsStep = "proofs" as const;
+export type HackathonProofsStep = typeof hackathonProofsStep;
+export type HackathonRequestStep = HackathonLiveStep | HackathonProofsStep;
+export const hackathonRequestSteps = Object.freeze([
+  ...hackathonLiveSteps,
+  hackathonProofsStep,
+] as const);
+
 export const hackathonLiveLimits = Object.freeze({
   sessionSeconds: 86_400,
   publicSessions: 100,
@@ -24,9 +37,12 @@ export const hackathonLiveProviderAllowances = Object.freeze({
   correct: Object.freeze({ titan: 1, nova: 0 }),
   ask_after: Object.freeze({ titan: 1, nova: 1 }),
   latest_receipt: Object.freeze({ titan: 0, nova: 0 }),
-}) satisfies Readonly<Record<HackathonLiveStep, Readonly<{ titan: number; nova: number }>>>;
+  /** Read-only: catalog and plan inspection only, so it may never reach a provider. */
+  proofs: Object.freeze({ titan: 0, nova: 0 }),
+}) satisfies Readonly<Record<HackathonRequestStep, Readonly<{ titan: number; nova: number }>>>;
 
 export type HackathonLiveStepObject = Readonly<{ step: HackathonLiveStep }>;
+export type HackathonRequestStepObject = Readonly<{ step: HackathonRequestStep }>;
 
 export function parseHackathonLiveStep(value: unknown): HackathonLiveStepObject {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
@@ -44,6 +60,25 @@ export function parseHackathonLiveStep(value: unknown): HackathonLiveStepObject 
   }
 
   return Object.freeze({ step: step as HackathonLiveStep });
+}
+
+/** Accepts the five beat steps plus the repeatable proofs side step, and nothing else. */
+export function parseHackathonRequestStep(value: unknown): HackathonRequestStepObject {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new TypeError("hackathon request step must be an object");
+  }
+
+  const keys = ownDataKeys(value);
+  if (keys.length !== 1 || keys[0] !== "step") {
+    throw new TypeError("hackathon request step must contain exactly step");
+  }
+
+  const step = readOwnData(value, "step");
+  if (typeof step !== "string" || !hackathonRequestSteps.includes(step as HackathonRequestStep)) {
+    throw new TypeError("hackathon request step is not allowed");
+  }
+
+  return Object.freeze({ step: step as HackathonRequestStep });
 }
 
 export function isMonotonicHackathonLiveTransition(

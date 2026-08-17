@@ -3,7 +3,7 @@ import { types as nodeUtilTypes } from "node:util";
 import { runProductionHackathon } from "./production-runtime.js";
 
 const maximumInputBytes = 1_024;
-const steps = new Set(["start", "ask_before", "correct", "ask_after", "latest_receipt"]);
+const steps = new Set(["start", "ask_before", "correct", "ask_after", "latest_receipt", "proofs"]);
 function isProxy(value: unknown): boolean {
   return nodeUtilTypes.isProxy(value);
 }

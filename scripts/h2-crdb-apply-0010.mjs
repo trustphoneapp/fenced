@@ -63,10 +63,10 @@ export async function runMigration0010({ createClient = createMigrationClient } 
 
   const missing = [];
   for (const { relation, role } of expectedGrants) {
-    const result = await client.query(
-      `SELECT has_table_privilege($1, $2, 'SELECT') AS granted`,
-      [role, `continuity.${relation}`],
-    );
+    const result = await client.query(`SELECT has_table_privilege($1, $2, 'SELECT') AS granted`, [
+      role,
+      `continuity.${relation}`,
+    ]);
     if (result.rows[0]?.granted !== true) missing.push(`${role}:${relation}`);
   }
   await client.end();

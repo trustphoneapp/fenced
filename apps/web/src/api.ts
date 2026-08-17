@@ -6,6 +6,9 @@ import {
 
 export { liveSteps };
 export type { LiveStep };
+/** The five beat steps plus the repeatable read-only proofs side step. */
+export const proofsStep = "proofs" as const;
+export type RequestStep = LiveStep | typeof proofsStep;
 
 /** Judge-facing copy for each fixed step. Allowances come from the shared contract, never typed here. */
 export type StepMeta = Readonly<{
@@ -107,12 +110,25 @@ export type Receipt = Readonly<{
   retrievalVersion: string;
   totalTokens: number;
 }>;
+export type ProofCounts = Readonly<{
+  evidenceLineage: number;
+  receiptSummary: number;
+  taskStatus: number;
+}>;
+export type Proofs = Readonly<{
+  indexColumns: readonly string[];
+  indexName: string;
+  mcp: Readonly<{ scoped: ProofCounts; unscoped: ProofCounts }>;
+  recallPlan: readonly string[];
+}>;
 export type LiveResult = Readonly<{
+  proofs?: Proofs;
+  requestStep?: RequestStep;
   answer?: string;
   recalled?: readonly Lineage[];
   receipt?: Receipt;
   revision?: "2";
-  step: LiveStep;
+  step: RequestStep;
   withheld?: readonly Lineage[];
 }>;
 export type ApiFailure = "conflict" | "denied" | "invalid" | "network" | "service" | "unknown";
@@ -209,8 +225,21 @@ function receipt(value: unknown): Receipt | undefined {
     : undefined;
 }
 
-export function parseLiveResult(value: unknown, step: LiveStep): LiveResult | undefined {
+export function parseLiveResult(value: unknown, step: RequestStep): LiveResult | undefined {
   try {
+    if (step === "proofs") {
+      const root = record(value, [
+        "indexColumns",
+        "indexName",
+        "mcp",
+        "outcome",
+        "recallPlan",
+        "step",
+      ]);
+      if (!root || root.outcome !== "succeeded" || root.step !== "proofs") return;
+      const parsed = proofs(root);
+      return parsed ? { proofs: parsed, step } : undefined;
+    }
     const root = record(
       value,
       step === "start"
@@ -238,12 +267,62 @@ export function parseLiveResult(value: unknown, step: LiveStep): LiveResult | un
   }
 }
 
+function counts(value: unknown): ProofCounts | undefined {
+  const row = record(value, ["evidenceLineage", "receiptSummary", "taskStatus"]);
+  return row &&
+    Object.values(row).every(
+      (n) => typeof n === "number" && Number.isSafeInteger(n) && n >= 0 && n <= 1000,
+    )
+    ? (row as unknown as ProofCounts)
+    : undefined;
+}
+/** Reject any proofs payload that still carries a 48-hex id, a URL, a cluster host or a db user. */
+const forbiddenInProofs = /[0-9a-f]{48}|cockroachlabs\.cloud|continuity_(app|migrator)/u;
+function proofs(value: unknown): Proofs | undefined {
+  const row = record(value, [
+    "indexColumns",
+    "indexName",
+    "mcp",
+    "outcome",
+    "recallPlan",
+    "step",
+  ]);
+  if (!row) return undefined;
+  const scope = record(row.mcp, ["scoped", "unscoped"]);
+  const scoped = scope && counts(scope.scoped);
+  const unscoped = scope && counts(scope.unscoped);
+  const plan = row.recallPlan;
+  const columns = row.indexColumns;
+  if (
+    !scoped ||
+    !unscoped ||
+    !text(row.indexName, 128) ||
+    !Array.isArray(plan) ||
+    plan.length === 0 ||
+    plan.length > 200 ||
+    !plan.every((line) => typeof line === "string" && line.length <= 400) ||
+    !Array.isArray(columns) ||
+    columns.length === 0 ||
+    columns.length > 32 ||
+    !columns.every((column) => typeof column === "string" && column.length <= 128)
+  )
+    return undefined;
+  const planText = plan.join("\n");
+  if (planText.includes(row.indexName) || forbiddenInProofs.test(planText)) return undefined;
+  return {
+    indexColumns: [...columns],
+    indexName: row.indexName,
+    mcp: { scoped, unscoped },
+    recallPlan: [...plan],
+  };
+}
+
 export const failureMessage = (failure: ApiFailure) => messages[failure];
 const statusFailure = (status: number): ApiFailure =>
   status === 403 ? "denied" : status === 409 ? "conflict" : status === 503 ? "unknown" : "service";
 
 export async function postDemo(
-  step: LiveStep,
+  step: RequestStep,
   fetcher: Fetcher,
   signal?: AbortSignal,
 ): Promise<ApiOutcome> {

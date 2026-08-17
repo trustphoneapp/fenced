@@ -39,6 +39,8 @@ export const hackathonLiveProfile = Object.freeze({
   titanModel,
 });
 export type HackathonLiveStep = "start" | "ask_before" | "correct" | "ask_after" | "latest_receipt";
+/** Mirrors hackathonProofsStep in the contracts package; this layer holds no contracts import. */
+const proofsStepName = "proofs";
 const liveSteps: readonly HackathonLiveStep[] = Object.freeze([
   "start",
   "ask_before",
@@ -51,12 +53,17 @@ function liveStep(value: unknown): HackathonLiveStep | undefined {
     ? (value as HackathonLiveStep)
     : undefined;
 }
+/** The repeatable read-only side step. It never advances the beat and never reaches a provider. */
+function proofsStep(value: unknown): boolean {
+  return value === proofsStepName;
+}
 type Call = (input: unknown) => Promise<unknown>;
 export type HackathonLiveStore = Readonly<
   Record<
     | "correct"
     | "finalizeAnswerReceipt"
     | "latestReceipt"
+    | "proofs"
     | "replayAnswer"
     | "reserveOperation"
     | "retrieveSnapshot"
@@ -692,10 +699,81 @@ async function storeResult(call: () => Promise<unknown>, keys: readonly string[]
   return allowed(await safeCall(call), keys);
 }
 
+/**
+ * Shape and re-check the proofs payload. The adapter redacts; this layer refuses to release
+ * anything that still looks like a tenant id, a connection URL, a cluster host, or a database
+ * user, so a redaction regression fails closed instead of leaking.
+ */
+const forbiddenInProofs =
+  /[0-9a-f]{48}|postgres(ql)?:\/\/|cockroachlabs\.cloud|continuity_(app|migrator)/u;
+const proofCounts = (value: unknown) => {
+  const row = plain(value, ["evidenceLineage", "receiptSummary", "taskStatus"], false);
+  if (!row) return undefined;
+  const entries = [row.taskStatus, row.receiptSummary, row.evidenceLineage];
+  return entries.every(
+    (count) =>
+      typeof count === "number" && Number.isSafeInteger(count) && count >= 0 && count <= 1000,
+  )
+    ? Object.freeze({
+        evidenceLineage: row.evidenceLineage as number,
+        receiptSummary: row.receiptSummary as number,
+        taskStatus: row.taskStatus as number,
+      })
+    : undefined;
+};
+function proofsOutput(value: unknown) {
+  const row = plain(value, ["indexColumns", "indexName", "mcp", "recallPlan"], false);
+  if (!row) return undefined;
+  const scopedCounts = plain(row.mcp, ["scoped", "unscoped"], false);
+  const unscoped = scopedCounts && proofCounts(scopedCounts.unscoped);
+  const scoped = scopedCounts && proofCounts(scopedCounts.scoped);
+  const plan = row.recallPlan;
+  const columns = row.indexColumns;
+  if (
+    !unscoped ||
+    !scoped ||
+    typeof row.indexName !== "string" ||
+    row.indexName.length > 128 ||
+    !Array.isArray(plan) ||
+    plan.length === 0 ||
+    plan.length > 200 ||
+    !plan.every((line) => typeof line === "string" && line.length <= 400) ||
+    !Array.isArray(columns) ||
+    columns.length === 0 ||
+    columns.length > 32 ||
+    !columns.every((column) => typeof column === "string" && column.length <= 128)
+  )
+    return undefined;
+  // The live recall plan must never name the vector index; if it ever does, the honest claim on the
+  // page would be wrong, so refuse to serve rather than publish a contradiction.
+  const planText = plan.join("\n");
+  if (planText.includes(row.indexName)) return undefined;
+  if (forbiddenInProofs.test(`${planText}\n${columns.join("\n")}\n${row.indexName}`))
+    return undefined;
+  return Object.freeze({
+    indexColumns: Object.freeze([...columns] as readonly string[]),
+    indexName: row.indexName,
+    mcp: Object.freeze({ scoped, unscoped }),
+    outcome: "succeeded" as const,
+    recallPlan: Object.freeze([...plan] as readonly string[]),
+    step: proofsStepName,
+  });
+}
+
 export function createHackathonLive(dependencies: HackathonLiveDependencies) {
   const unsafe = Object.freeze({
     async run(candidate: unknown) {
       const input = exact(candidate, ["sessionDigest", "step"]);
+      if (input && digest(input.sessionDigest) && proofsStep(input.step)) {
+        // Read-only catalog and plan inspection for a judge. No reservation, no provider call, no
+        // beat advance, so it may be repeated any number of times once a session exists.
+        const sessionDigest = input.sessionDigest as string;
+        const proven = await safeCall(() =>
+          dependencies.store.proofs({ tenantId: sessionDigest.slice(0, 48) }),
+        );
+        const shaped = proofsOutput(proven);
+        return shaped ?? failure("start", "denied", "store_unavailable");
+      }
       const step = liveStep(input?.step);
       if (!input || !digest(input.sessionDigest) || !step)
         return failure("start", "denied", "invalid_input");

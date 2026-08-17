@@ -38,6 +38,8 @@ describe("hackathon live contract", () => {
       correct: { titan: 1, nova: 0 },
       ask_after: { titan: 1, nova: 1 },
       latest_receipt: { titan: 0, nova: 0 },
+      // The repeatable read-only side step inspects the catalog and a plan; it never calls a provider.
+      proofs: { titan: 0, nova: 0 },
     });
     expect(Object.isFrozen(hackathonLiveProviderAllowances)).toBe(true);
     for (const allowance of Object.values(hackathonLiveProviderAllowances)) {

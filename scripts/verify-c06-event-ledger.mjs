@@ -23,6 +23,8 @@ const expectedMigrations = Object.freeze([
   "0009_hackathon_quota_window.sql",
 
   "0010_hackathon_fk_read_grants.sql",
+
+  "0011_mcp_reader_membership.sql",
 ]);
 const required = Object.freeze([
   "ADD CONSTRAINT events_target_candidate_key",

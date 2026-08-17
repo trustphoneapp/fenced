@@ -21,6 +21,8 @@ const expectedMigrations = Object.freeze([
   "0009_hackathon_quota_window.sql",
 
   "0010_hackathon_fk_read_grants.sql",
+
+  "0011_mcp_reader_membership.sql",
 ]);
 const initialSha256 = "9179c8575d6b9cb2a6ef82db2e73409a96b0de5b8bcf3d213ec12768e7d325f2";
 const maxBytes = 16 * 1024;

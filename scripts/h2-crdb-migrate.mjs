@@ -42,6 +42,7 @@ const separatelyAppliedMigrations = Object.freeze([
   "0008_hackathon_live.sql",
   "0009_hackathon_quota_window.sql",
   "0010_hackathon_fk_read_grants.sql",
+  "0011_mcp_reader_membership.sql",
 ]);
 
 function databaseUrl(name) {

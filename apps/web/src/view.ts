@@ -6,6 +6,8 @@ export {
   answerSegments,
   type DiffToken,
   type Lineage,
+  type ProofCounts,
+  type Proofs,
   type Receipt,
   shortId,
   stepMeta,

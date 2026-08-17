@@ -5,6 +5,8 @@ import {
   answerSegments,
   type DiffToken,
   type Lineage,
+  type ProofCounts,
+  type Proofs,
   type Receipt,
   shortId,
   stepMeta,
@@ -365,6 +367,104 @@ function Architecture({ history }: { history: readonly LiveResult[] }) {
   );
 }
 
+function CountRow({
+  label,
+  unscoped,
+  scoped,
+}: {
+  label: string;
+  unscoped: number;
+  scoped: number;
+}) {
+  return (
+    <li>
+      <span className="mono">{label}</span>
+      <span className="rev">{unscoped} rows</span>
+      <span aria-hidden="true">→</span>
+      <span className={scoped > unscoped ? "rev changed-count" : "rev"}>{scoped} rows</span>
+    </li>
+  );
+}
+
+function ProofCards({ proofs }: { proofs: Proofs }) {
+  const rows: readonly (readonly [string, keyof ProofCounts])[] = [
+    ["task-status", "taskStatus"],
+    ["receipt-summary", "receiptSummary"],
+    ["evidence-lineage", "evidenceLineage"],
+  ];
+  return (
+    <>
+      <section className="panel proofcard" aria-labelledby="mcp-title">
+        <div className="cardhead">
+          <h2 id="mcp-title">Managed MCP read scoping</h2>
+          <span className="pill live">Live</span>
+        </div>
+        <p className="lede-small">
+          The three read-only queries from the published Managed MCP pack, run just now under the
+          least-privilege reader role. Unscoped first, then with the tenant scope bound.
+        </p>
+        <ul className="counts">
+          {rows.map(([label, key]) => (
+            <CountRow
+              key={label}
+              label={label}
+              unscoped={proofs.mcp.unscoped[key]}
+              scoped={proofs.mcp.scoped[key]}
+            />
+          ))}
+        </ul>
+        <p className="note">
+          An agent that has not bound a scope reads an empty database. Binding uses set_config,
+          which is itself a SELECT, so scoping stays inside the read-only tool surface. This page
+          runs the same role and the same SQL through the demo API; it is not a public MCP endpoint,
+          and no database credential is issued to anyone.
+        </p>
+      </section>
+
+      <section className="panel proofcard" aria-labelledby="recall-title">
+        <div className="cardhead">
+          <h2 id="recall-title">Live recall plan</h2>
+          <span className="pill live">Live</span>
+        </div>
+        <p className="lede-small">
+          This is the plan for the query the ask steps actually run, taken just now under row-level
+          security. Tenant ids, hosts and users are redacted at the server.
+        </p>
+        <pre className="plan">{proofs.recallPlan.join("\n")}</pre>
+        <p className="note">
+          The vector index is not named here, and that is the honest result: live recall is a
+          policy-filtered scan.
+        </p>
+      </section>
+
+      <section className="panel proofcard" aria-labelledby="index-title">
+        <div className="cardhead">
+          <h2 id="index-title">Vector index definition</h2>
+          <span className="pill live">Live</span>
+        </div>
+        <p className="lede-small">
+          Read live from the catalog: the vector index exists on continuity.memory_facts with this
+          exact column order.
+        </p>
+        <p className="mono indexname">{proofs.indexName}</p>
+        <ol className="indexcols">
+          {proofs.indexColumns.map((column, index) => (
+            <li key={column} className="mono">
+              <span className="rev">{index + 1}</span> {column}
+            </li>
+          ))}
+        </ol>
+        <p className="footnote">
+          Live recall does not use this index. CockroachDB cannot combine a vector index scan with a
+          row-level-security policy on the same relation, so the policy was kept and the index hint
+          dropped. Selecting it requires an identity that bypasses row-level security, which no
+          identity in this request path has.
+        </p>
+      </section>
+    </>
+  );
+}
+
 function JudgeGuide() {
   return (
     <section className="panel judge" aria-labelledby="judge-title">
@@ -407,7 +507,8 @@ function App() {
     [busy, setBusy] = useState(false),
     [connection, setConnection] = useState(readyBadge),
     [error, setError] = useState<string>(),
-    [confirmRestart, setConfirmRestart] = useState(false);
+    [confirmRestart, setConfirmRestart] = useState(false),
+    [proofs, setProofs] = useState<Proofs | undefined>(undefined);
   const busyRef = useRef(false),
     ticket = useRef(0),
     controller = useRef<AbortController | undefined>(undefined),
@@ -429,11 +530,11 @@ function App() {
    * Run one fixed step. `from` names the step index explicitly so a sequential runner never reads
    * a stale closure; on success the next index is returned so the caller can chain.
    */
-  async function run(restart = false, from?: number): Promise<number | undefined> {
+  async function run(restart = false, from?: number, side?: "proofs"): Promise<number | undefined> {
     if (busyRef.current) return undefined;
     if (restart) controller.current?.abort();
     const index = restart ? 0 : (from ?? position);
-    const next = liveSteps[index];
+    const next = side ?? liveSteps[index];
     if (!next) return undefined;
     const current = ++ticket.current,
       currentController = new AbortController(),
@@ -446,6 +547,7 @@ function App() {
     if (restart) {
       liveRef.current = false;
       setConnection(readyBadge);
+      setProofs(undefined);
       setHistory([]);
       setInspect(undefined);
       setPosition(0);
@@ -462,6 +564,11 @@ function App() {
     }
     liveRef.current = true;
     setConnection(liveBadge);
+    if (side) {
+      // The proofs side step is repeatable and never advances the beat.
+      setProofs(outcome.result.proofs);
+      return index;
+    }
     setHistory((prior) => (restart ? [outcome.result] : [...prior, outcome.result]));
     setInspect(index);
     setPosition(index + 1);
@@ -472,6 +579,19 @@ function App() {
     if (busyRef.current) return;
     let next = start === undefined ? await run(true) : start;
     while (next !== undefined && next < liveSteps.length) next = await run(false, next);
+  }
+  /**
+   * Run the read-only proofs. A judge may click this at any time; if no answer exists yet we run
+   * enough of the beat first that all three summary views have rows, otherwise the scoped counts
+   * would read as zero and look like a failure rather than isolation.
+   */
+  async function runProofs() {
+    if (busyRef.current) return;
+    let next: number | undefined = position;
+    if (history.length === 0) next = await run(true);
+    while (next !== undefined && next < 2) next = await run(false, next);
+    if (next === undefined) return;
+    await run(false, undefined, "proofs");
   }
   const selected = inspect === undefined ? undefined : history[inspect];
   const before = history.find((entry) => entry.step === "ask_before");
@@ -549,6 +669,9 @@ function App() {
         >
           {primaryLabel}
         </button>
+        <button type="button" onClick={() => runProofs()} disabled={busy}>
+          {busy ? "Running…" : "Show Cockroach proofs"}
+        </button>
         {position > 0 && !done && (
           <button type="button" onClick={() => runFrom(position)} disabled={busy}>
             Run remaining steps
@@ -593,7 +716,7 @@ function App() {
       <section className="panel result" aria-live="polite" tabIndex={-1} ref={resultFocus}>
         <h2>
           {selected?.step
-            ? stepMeta[selected.step].label
+            ? (stepMeta[selected.step as keyof typeof stepMeta]?.label ?? "Cockroach proofs")
             : history.length === 0
               ? "No session yet"
               : "Live result"}
@@ -607,6 +730,7 @@ function App() {
         )}
       </section>
       {before && after && <DiffView before={before} after={after} />}
+      {proofs && <ProofCards proofs={proofs} />}
       <ProofPanel history={history} />
       <Architecture history={history} />
       <JudgeGuide />

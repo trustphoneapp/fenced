@@ -9,6 +9,37 @@ const maximumRevision = 18_446_744_073_709_551_615n;
 const zeroVector = `[${Array(1024).fill(0).join(",")}]`;
 const denied = (reason: HackathonCrdbReason) =>
   Object.freeze({ outcome: "denied" as const, reason });
+const vectorIndexName = "memory_facts_titan_scope_l2";
+const mcpViews = Object.freeze([
+  ["taskStatus", "task_status_summary_v1"],
+  ["receiptSummary", "receipt_summary_v1"],
+  ["evidenceLineage", "evidence_lineage_summary_v1"],
+] as const);
+const indexKeys = Object.freeze([
+  "table_name",
+  "index_name",
+  "non_unique",
+  "seq_in_index",
+  "column_name",
+  "definition",
+  "direction",
+  "storing",
+  "implicit",
+  "visible",
+  "visibility",
+]);
+/**
+ * Strip anything identifying from a query plan before it can leave the process: tenant ids,
+ * connection URLs, cluster hosts and database users. The application layer re-checks the result.
+ */
+function redactPlan(line: string): string {
+  return line
+    .replace(/[0-9a-f]{48}/gu, "<tenant>")
+    .replace(/postgres(ql)?:\/\/\S*/gu, "<url>")
+    .replace(/[a-z0-9-]+(?:\.[a-z0-9-]+)*\.cockroachlabs\.cloud/gu, "<host>")
+    .replace(/continuity_(?:app|migrator)/gu, "<user>")
+    .slice(0, 400);
+}
 function isProxy(value: unknown): boolean {
   return nodeUtilTypes.isProxy(value);
 }
@@ -1558,6 +1589,77 @@ VALUES ($1,$2,'correct',$3,$4,$5,$6,$7,$8,$9,CURRENT_TIMESTAMP)`,
         },
         options,
       );
+    },
+    /**
+     * Read-only evidence for a judge: Managed MCP read scoping, the plan the live ask path really
+     * uses, and the vector index definition. Executes no writes, reserves no quota, and reaches no
+     * provider. Every string leaving here is redacted at the source; the application layer refuses
+     * the payload again if anything identifying survives.
+     */
+    async proofs(candidate: unknown) {
+      const value = record(candidate, ["tenantId"]);
+      if (!pool || !value || !identifier(value.tenantId)) return denied("invalid_input");
+      const tenantId = value.tenantId as string;
+      const client = await pool.connect().catch(() => undefined);
+      if (!client) return denied("database_error");
+      try {
+        const mcp = { scoped: undefined as unknown, unscoped: undefined as unknown };
+        for (const scoped of [false, true]) {
+          await client.query("BEGIN");
+          await client.query("SET LOCAL ROLE zc_continuity_mcp_reader");
+          if (scoped) {
+            await client.query("SELECT set_config('continuity.tenant_id', $1, true)", [tenantId]);
+            await client.query("SELECT set_config('continuity.server_purpose', $1, true)", [
+              purpose,
+            ]);
+          }
+          const counts = { evidenceLineage: 0, receiptSummary: 0, taskStatus: 0 };
+          for (const [key, view] of mcpViews) {
+            const result = await client.query(`SELECT count(*)::INT8 AS n FROM continuity.${view}`);
+            counts[key] = Number(result.rows[0] ? (record(result.rows[0], ["n"])?.n ?? 0) : 0);
+          }
+          if (scoped) mcp.scoped = counts;
+          else mcp.unscoped = counts;
+          await client.query("ROLLBACK");
+        }
+
+        await client.query("BEGIN");
+        await client.query("SET LOCAL ROLE zc_continuity_executor");
+        await client.query("SELECT set_config('continuity.tenant_id', $1, true)", [tenantId]);
+        await client.query("SELECT set_config('continuity.server_purpose', $1, true)", [purpose]);
+        const planned = await client.query(`EXPLAIN ${hackathonDviPublicSql}`, [
+          tenantId,
+          purpose,
+          zeroVector,
+          3,
+        ]);
+        const recallPlan = planned.rows.map((row) =>
+          redactPlan(String(Object.values(row as Record<string, unknown>)[0] ?? "")),
+        );
+        const indexed = await client.query("SHOW INDEXES FROM continuity.memory_facts");
+        await client.query("ROLLBACK");
+        const indexColumns = indexed.rows
+          .filter((row) => String(record(row, indexKeys)?.index_name ?? "") === vectorIndexName)
+          .map((row) => String(record(row, indexKeys)?.column_name ?? ""))
+          .filter((column) => column.length > 0);
+        return Object.freeze({
+          indexColumns,
+          indexName: vectorIndexName,
+          mcp,
+          recallPlan,
+        });
+      } catch {
+        try {
+          await client.query("ROLLBACK");
+        } catch {}
+        return denied("database_error");
+      } finally {
+        try {
+          client.release();
+        } catch {
+          // A post-inspection pool release failure cannot expose driver details.
+        }
+      }
     },
   });
 }

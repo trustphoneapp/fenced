@@ -18,6 +18,7 @@ const agentMemoryMigrationName = "0007_agent_memory.sql";
 const hackathonLiveMigrationName = "0008_hackathon_live.sql";
 const hackathonQuotaWindowMigrationName = "0009_hackathon_quota_window.sql";
 const hackathonFkReadGrantsMigrationName = "0010_hackathon_fk_read_grants.sql";
+const mcpReaderMembershipMigrationName = "0011_mcp_reader_membership.sql";
 const migrationPath = path.join(migrationRoot, migrationName);
 const readmePath = path.join(databaseRoot, "README.md");
 const contractsRoot = path.join(repositoryRoot, "packages", "contracts", "schemas", "v1");
@@ -478,6 +479,7 @@ async function verifyC03SchemaInternal(testHook) {
       hackathonLiveMigrationName,
       hackathonQuotaWindowMigrationName,
       hackathonFkReadGrantsMigrationName,
+      mcpReaderMembershipMigrationName,
     ])
   )
     throw new Error("C03 migration order differs from the canonical initial ledger");

@@ -553,3 +553,70 @@ footer {
     transition: none;
   }
 }
+
+/* Proof cards */
+.cardhead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.pill.live {
+  background: var(--green-900);
+  color: white;
+}
+.counts {
+  margin: 0 0 0.75rem;
+  padding: 0;
+  list-style: none;
+}
+.counts li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+.counts li:last-child {
+  border-bottom: 0;
+}
+.counts .mono {
+  min-width: 11rem;
+}
+.changed-count {
+  background: var(--green-900);
+  color: white;
+}
+.plan {
+  margin: 0 0 0.75rem;
+  padding: 0.85rem 1rem;
+  overflow-x: auto;
+  border-radius: 0.3rem;
+  background: var(--mint);
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  line-height: 1.45;
+  white-space: pre;
+}
+.indexname {
+  margin: 0 0 0.5rem;
+  font-weight: 700;
+}
+.indexcols {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0 0 0.9rem;
+  padding: 0;
+  list-style: none;
+}
+.indexcols li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--rule);
+  border-radius: 0.3rem;
+  background: var(--mint);
+  font-size: 0.82rem;
+}

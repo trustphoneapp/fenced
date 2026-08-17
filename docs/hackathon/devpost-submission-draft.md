@@ -78,6 +78,22 @@ RLS policy on the same relation: `FORCE_INDEX` raises `42809` and `NO_FULL_SCAN`
 Policy before retrieval is the guarantee this project exists to make, so we dropped the index hint
 rather than the policy, and we say so in the README instead of quietly claiming both.
 
+## Judge-clickable proofs
+
+Two claims usually live only in an operator's SQL session. We made both clickable on the live page,
+as real server round-trips against the production cluster, through the same fixed API contract:
+
+- **Managed MCP read scoping.** The three published pack queries run under the least-privilege
+  reader role, unscoped and then scoped: `0 / 0 / 0` becomes `1 / 1 / 2`. Same role, same SQL as the
+  pack, executed by the demo API. Not a public MCP endpoint, and nobody is issued a credential.
+- **Two plans, not one.** `EXPLAIN` of the query the ask steps really run, under row-level security,
+  which does *not* name the vector index; and `SHOW INDEXES`, which proves the index exists with its
+  exact column order. We deliberately did not build a path that would let the request identity
+  bypass row-level security just to produce a prettier plan.
+
+Every string is redacted in the adapter and re-checked at three more layers. If the live plan ever
+named the vector index, the API refuses the response instead of contradicting its own claim.
+
 ## Accomplishments that we're proud of
 
 The receipt is judge-visible and falsifiable. Anyone can run the five steps and watch the answer

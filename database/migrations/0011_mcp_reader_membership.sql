@@ -1,0 +1,17 @@
+-- Forward-only, additive role membership so the deployed worker can demonstrate Managed MCP
+-- read scoping to a judge without issuing anyone a database credential.
+--
+-- zc_continuity_mcp_reader stays NOLOGIN. Nobody logs in as it. The application login
+-- continuity_app becomes a member so that a read-only request step may SET LOCAL ROLE to it and
+-- run the exact three summary-view queries from docs/hackathon/managed-mcp-queries.json.
+--
+-- Disclosure, because CockroachDB v26.2.5 has no per-membership INHERIT FALSE and continuity_app
+-- has rolinherit = true: this membership also gives continuity_app implicit SELECT on the three
+-- summary views. That confers no readable rows on its own. The views resolve through
+-- zc_continuity_mcp_view_owner, whose policies require continuity.tenant_id and
+-- continuity.server_purpose to be bound, so an unbound session reads zero rows either way.
+--
+-- Deliberately NOT granted: SELECT on continuity.memory_facts or any fact body, LOGIN, BYPASSRLS.
+-- The reader can never read fact content, and no identity in the request path can bypass
+-- row-level security.
+GRANT zc_continuity_mcp_reader TO continuity_app;

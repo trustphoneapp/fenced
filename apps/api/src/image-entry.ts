@@ -18,7 +18,7 @@ const worker = "/var/task/one-request-worker.cjs";
 const maximumInputBytes = 1_024;
 const maximumOutputBytes = 32 * 1024;
 const timeoutMilliseconds = 20_000;
-const steps = new Set(["start", "ask_before", "correct", "ask_after", "latest_receipt"]);
+const steps = new Set(["start", "ask_before", "correct", "ask_after", "latest_receipt", "proofs"]);
 const childExitOutcome = Object.freeze({ outcome: "child_exit" as const });
 const unknownOutcome = Object.freeze({ outcome: "unknown" as const });
 
