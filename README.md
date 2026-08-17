@@ -59,6 +59,31 @@ Two further honest limits: the query vector must be a constant for the index to 
 and the E2 grant gaps on `continuity.events` and `continuity.payload_anchors` are deliberately not
 granted, because the hackathon path never writes those children.
 
+The `dvi-plan` call is an operator proof, not an agent query. `zc_continuity_mcp_reader` has no
+`SELECT` on `continuity.memory_facts` by design, so the plan is taken with an administrative
+identity; agents never read fact rows directly.
+
+### Managed MCP, and what an agent actually sees
+
+The read-only pack in [`docs/hackathon/managed-mcp-queries.json`](docs/hackathon/managed-mcp-queries.json)
+uses only official `select_query` and `explain_query` tools against three summary views, never base
+tables. The reader role is `zc_continuity_mcp_reader`, which holds `SELECT` on those three views and
+nothing else.
+
+Tenant isolation is enforced by policy rather than by trusting the query. The views resolve through
+`zc_continuity_mcp_view_owner`, whose policies require the session to be bound to a scope, so a
+connected agent sees nothing until it binds one:
+
+| Managed MCP call | before scope is bound | after `continuity.tenant_id` and `continuity.server_purpose` are set |
+| --- | --- | --- |
+| `task-status` | 0 rows | 1 row |
+| `receipt-summary` | 0 rows | 1 row |
+| `evidence-lineage` | 0 rows | 2 rows |
+
+Binding uses `set_config`, which is itself a `SELECT`, so scoping stays inside the read-only tool
+surface. An unscoped or wrongly scoped agent reads an empty database rather than another tenant's
+receipts.
+
 Implemented, tested, deployed, and demonstrated are intentionally different labels, and the table
 above keeps them apart rather than collapsing them into a single claim.
 
@@ -106,6 +131,31 @@ local runs only.
 - The hackathon schema stores synthetic memory inline and is not a production erasure design.
 - No Cognito authentication, SQS worker path, second provider, autonomous tools, multi-region
   runtime, production readiness, private integration, or uptime guarantee is claimed.
+
+## Tools used
+
+**CockroachDB** (the hackathon asks for at least two):
+
+| Tool | How it is used | Where |
+| --- | --- | --- |
+| Distributed Vector Indexing | `memory_facts_titan_scope_l2`, a `VECTOR INDEX` over a five-column scope prefix plus `embedding vector_l2_ops`, storing 1024-dimension Titan embeddings. `EXPLAIN` names it and emits a `• vector search` node. | [`0008_hackathon_live.sql`](database/migrations/0008_hackathon_live.sql) |
+| Managed MCP Server | Read-only `select_query` / `explain_query` pack over three summary views, bound to a least-privilege reader role and gated by scope policies. | [`managed-mcp-queries.json`](docs/hackathon/managed-mcp-queries.json) |
+
+Also used: row-level security with forced policies, `SET LOCAL ROLE` per step, `SERIALIZABLE`
+transactions with bounded retry, and a rolling 24-hour quota window enforced with `SELECT … FOR UPDATE`.
+
+**AWS** (at least one required):
+
+| Service | How it is used |
+| --- | --- |
+| Amazon Bedrock | `amazon.titan-embed-text-v2:0` for embeddings and `amazon.nova-lite-v1:0` for generation, both recorded in every receipt with token counts and a provider request id |
+| AWS Lambda | arm64 container image running the fixed five-step API, one request per worker process |
+| Amazon API Gateway | HTTP API in front of the function |
+| Amazon CloudFront | Public demo origin serving the React interface |
+| AWS Secrets Manager | Holds the CockroachDB credential; resolved into the child process only, never into the handler |
+| Amazon ECR | Stores the single-platform arm64 image |
+| CloudWatch and X-Ray | Function logs and tracing |
+| IAM | Execution role scoped to exactly one secret ARN and exactly two Bedrock model ARNs |
 
 ## Project references
 

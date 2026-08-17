@@ -196,6 +196,7 @@ describe("C04 role and session isolation migration", () => {
       "0007_agent_memory.sql",
       "0008_hackathon_live.sql",
       "0009_hackathon_quota_window.sql",
+      "0010_hackathon_fk_read_grants.sql",
     ];
     const beforeNames = await readdir(databaseRoot);
     const beforeMigrations = await Promise.all(

@@ -18,6 +18,8 @@ const expectedMigrations = Object.freeze([
   "0007_agent_memory.sql",
   "0008_hackathon_live.sql",
   "0009_hackathon_quota_window.sql",
+
+  "0010_hackathon_fk_read_grants.sql",
 ]);
 const acceptedMigrations = Object.freeze([
   Object.freeze({
