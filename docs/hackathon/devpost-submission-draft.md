@@ -118,6 +118,28 @@ a policy-filtered scan rather than a vector index scan, for the reason given abo
 synthetic memory schema is not a complete encrypted or backup-erasure design. No SQS path, second
 provider, autonomous tools, learning, or multi-region runtime is claimed.
 
+## Feedback on CockroachDB AI tools (from real findings)
+
+The rules invite feedback on the CockroachDB AI tools. Everything below was hit while making the
+demo work, not read in a doc.
+
+1. **Vector index scan and row-level security cannot combine.** With RLS forced on the relation,
+   `FORCE_INDEX` on a `VECTOR INDEX` raises `42809` and `NO_FULL_SCAN` raises `XXUUU`. Multi-tenant
+   agent memory almost always wants both. Suggested: allow the RLS predicate to be pushed into the
+   vector index when the policy columns are a leading prefix of the index (ours are), or document
+   the limitation and the recommended `SECURITY DEFINER` workaround prominently in the DVI docs.
+2. **The query vector must be a constant for the index to be selected.** A `$1` parameter or a
+   subquery silently degrades to a scan. A loud `EXPLAIN` warning or a doc callout would help; this
+   is invisible to tests that only check result rows.
+3. **Managed MCP read-only mode is excellent for scope proofs.** `set_config` being a `SELECT` let
+   us bind tenant scope entirely inside the read-only tool surface. Requests: a first-class
+   “bind scope” tool so agents do not need to know the `set_config` trick, and a way to see the
+   effective role and grants of the MCP connection from the tool side.
+4. **Foreign keys are validated in the writer's query plan.** A role that inserts into a child
+   table needs `SELECT` on the referenced parent, unlike PostgreSQL. A note under privileges on the
+   PostgreSQL-compatibility page would have saved a deploy cycle.
+5. **`array_fill()` is missing.** Minor, but it is the helper vector-fixture code reaches for.
+
 ## Links
 
 - Try it: <https://d2r4c62btm4zg8.cloudfront.net>

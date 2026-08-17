@@ -1,61 +1,82 @@
 # Continuity hackathon architecture
 
-**Current label:** local implementation tested; container-image composition is a committed, sealed
-local-source candidate whose image remains unbuilt; live execution and deployment remain unexecuted.
+**Verified live on 2026-08-17.** All five steps return `200` on the public CloudFront and API
+Gateway origins; receipts show two recalled revisions and one reference withheld by sensitivity
+policy; the correction moves the launch-day fact from revision 1 to revision 2. Migrations
+`0001`–`0010` are applied to CockroachDB Cloud v26.2.5.
 
-Solid arrows are implemented local boundaries. Dashed arrows are the intended E4 route and must
-not be presented as live until the [submission checklist](submission-checklist.md) is complete.
+Solid arrows are the live request path exercised by the demo. Dashed arrows are relationships that
+are real but not on the per-request path (index provenance, Managed MCP read scope, IAM binding).
 
 ```mermaid
 flowchart LR
-  subgraph Local["Reviewed local implementation"]
-    UI["React five-step UI"] --> API["Strict fixed-operation API"]
-    API --> STOP["Standard ZIP index: safe 503"]
-    IMG["Container image-entry"] --> WORKER["One-request worker"]
-    WORKER --> CAND["Injected production runtime candidate"]
+  subgraph Client["Browser"]
+    UI["React five-step UI<br/>sends only {step}"]
   end
 
-  subgraph Pending["Pending E4 execution"]
-    CF["CloudFront"] -.-> GW["API Gateway HTTP API"]
-    GW -.-> L["Node.js 24 Lambda"]
-    M8["Apply 0008"] -.-> M9["Apply 0009 rolling quota repair"]
-    M9 -.-> PC["Provider control + bounded enable"]
-    L -.-> PR["Policy before retrieval"]
-    PR -.-> T["Titan V2 query embedding"]
-    T -.-> DVI["CockroachDB scoped Titan L2 DVI"]
-    DVI -.-> PT["Policy before transmission"]
-    PT -.-> N["Nova Lite generation"]
-    N -.-> RX["Receipt + erasable response transaction"]
+  subgraph AWS["AWS us-east-1"]
+    CF["CloudFront<br/>UI + /api proxy, same-origin cookie"]
+    GW["API Gateway HTTP API"]
+    subgraph L["Lambda · arm64 container from ECR"]
+      ENTRY["image-entry<br/>resolves secret into child env only"]
+      WORKER["one-request worker<br/>policy → retrieve → policy → generate → commit"]
+    end
+    SM["Secrets Manager<br/>CockroachDB credential"]
+    subgraph BR["Amazon Bedrock"]
+      TITAN["Titan Text Embeddings V2<br/>1024 dims"]
+      NOVA["Nova Lite"]
+    end
+    OBS["CloudWatch · X-Ray · Budgets $25"]
+    IAM["IAM role: 1 secret ARN + 2 model ARNs"]
   end
 
-  CAND -.-> L
-  PC -.-> L
-  UI -.-> CF
-
-  subgraph MCP["Managed MCP: disabled until E4 scope proof"]
-    Q["Official select_query"] -.-> V["Three explicit redacted views"]
-    X["Official explain_query"] -.-> XP["Bounded DVI plan only"]
+  subgraph CRDB["CockroachDB Cloud v26.2.5"]
+    direction TB
+    RLS["memory_facts<br/>RLS FORCED · SET LOCAL ROLE executor<br/>SERIALIZABLE + bounded retry"]
+    DVI["VECTOR INDEX memory_facts_titan_scope_l2<br/>(tenant, purpose, space, status, sensitivity, embedding)"]
+    RCPT["hackathon_answer_receipts · receipt_revisions ·<br/>receipt_withheld · response_payloads"]
+    Q["hackathon_quota_lock FOR UPDATE<br/>600 Titan / 200 Nova rolling caps"]
+    VIEWS["MCP summary views<br/>task_status · receipt · evidence_lineage<br/>scope-gated policies"]
   end
 
-  V -.-> RX
-  XP -.-> DVI
+  subgraph MCP["CockroachDB Managed MCP · read-only"]
+    AGENT["select_query · explain_query<br/>role zc_continuity_mcp_reader"]
+  end
+
+  UI --> CF --> GW --> ENTRY --> WORKER
+  SM -.credential.-> ENTRY
+  WORKER -->|"1 reserve quota"| Q
+  WORKER -->|"2 policy before retrieval"| RLS
+  WORKER -->|"embed"| TITAN
+  RLS -. "index exists and is EXPLAIN-verified;<br/>live recall is a policy-filtered scan" .-> DVI
+  WORKER -->|"3 policy before transmission"| NOVA
+  WORKER -->|"4 commit receipt + lineage"| RCPT
+  RCPT -->|"answer + receipt"| UI
+  AGENT --> VIEWS
+  VIEWS -. "0 rows unscoped → 1 / 1 / 2 rows scoped" .-> RCPT
+  IAM -.-> L
+  L -.-> OBS
 ```
 
-## Governed data flow
+## Receipt flow
 
-1. The server mints the opaque session; the browser never chooses tenant or content.
-2. Retrieval policy authorizes the exact fixed question before Titan or CockroachDB.
-3. One scoped transaction returns authorized bodies and restricted ID-only metadata separately.
-4. Transmission policy binds the exact context, active revisions, deletion fence, model, region,
-   and destination before Nova.
-5. The answer is released only after CockroachDB rechecks the snapshot and commits receipt,
-   lineage, and separately erasable response payload.
-6. Correction atomically erases the superseded synthetic row body/vector, creates revision 2, and
-   records content-free lineage.
+- **recalled** — `(fact_id, revision)` pairs actually shown to Nova Lite.
+- **withheld** — `(fact_id, revision, reason)`; the body never leaves CockroachDB.
+- **lineage** — revision `r → r+1` recorded id-only at `correct`; the superseded body and vector are
+  erased.
 
-## Nonclaims
+## What is and is not on the live path
 
-The diagram does not claim a built or committed image, deployed stack, applied migration `0008` or
-`0009`, enabled provider, DVI selection, Bedrock call, Managed MCP isolation, public URL, telemetry,
-latency, cost, authentication, queue worker, production erasure, or production readiness. Each
-requires executed evidence, not diagram arrows.
+| Component | On the per-request path | Notes |
+| --- | --- | --- |
+| Row-level security, `SET LOCAL ROLE`, `SERIALIZABLE` retry | Yes | Every step |
+| DB-enforced provider quota (`FOR UPDATE`) | Yes | Before any Bedrock call |
+| Vector index `memory_facts_titan_scope_l2` | **No** | Real and `EXPLAIN`-verified under an operator identity that bypasses RLS. CockroachDB cannot combine a vector-index scan with an RLS policy on the same relation (`FORCE_INDEX` → `42809`, `NO_FULL_SCAN` → `XXUUU`), so live recall runs as a policy-filtered ordered scan. The policy was kept; the hint was dropped. |
+| Managed MCP summary views | No (agent-facing, not request-facing) | Reader sees zero rows until it binds `continuity.tenant_id` and `continuity.server_purpose` via `set_config`. |
+| Secrets Manager | Yes | Resolved by `asm-exec` into the child process environment; the handler never sees the value. |
+
+## Non-claims
+
+No authentication, no real users, no multi-region runtime, no second provider, no autonomous
+tools, no production erasure design beyond the synthetic schema, and no claim that live recall
+uses the vector index.

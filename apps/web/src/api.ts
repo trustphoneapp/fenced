@@ -1,10 +1,97 @@
 import {
+  hackathonLiveProviderAllowances as allowances,
   type HackathonLiveStep as LiveStep,
   hackathonLiveSteps as liveSteps,
 } from "@zintus-continuity/contracts";
 
 export { liveSteps };
 export type { LiveStep };
+
+/** Judge-facing copy for each fixed step. Allowances come from the shared contract, never typed here. */
+export type StepMeta = Readonly<{
+  label: string;
+  nova: number;
+  server: string;
+  titan: number;
+}>;
+export const stepMeta: Readonly<Record<LiveStep, StepMeta>> = Object.freeze({
+  start: Object.freeze({
+    label: "Start",
+    server: "Mint an opaque session, seed three synthetic facts, embed them with Titan v2",
+    ...allowances.start,
+  }),
+  ask_before: Object.freeze({
+    label: "Ask (before)",
+    server: "Policy-filtered recall under row-level security, then Nova Lite answers",
+    ...allowances.ask_before,
+  }),
+  correct: Object.freeze({
+    label: "Correct",
+    server: "Supersede the launch-day fact, revision 1 to 2, in one SERIALIZABLE transaction",
+    ...allowances.correct,
+  }),
+  ask_after: Object.freeze({
+    label: "Ask (after)",
+    server: "Same fixed question; recall now binds revision 2",
+    ...allowances.ask_after,
+  }),
+  latest_receipt: Object.freeze({
+    label: "Latest receipt",
+    server: "Replay the durable answer and receipt from CockroachDB; no provider call",
+    ...allowances.latest_receipt,
+  }),
+});
+
+/** 48-hex fact ids are unreadable in full; show head and tail, keep the full value in a title. */
+export const shortId = (id: string) => (id.length > 12 ? `${id.slice(0, 4)}…${id.slice(-4)}` : id);
+
+/** Split model output on `**` pairs so emphasis renders as elements, never as injected HTML. */
+export function answerSegments(text: string): readonly Readonly<{ bold: boolean; text: string }>[] {
+  const parts = text.split("**");
+  return parts
+    .map((part, index) => ({ bold: index % 2 === 1, text: part }))
+    .filter((segment) => segment.text.length > 0);
+}
+
+export type DiffToken = Readonly<{ kind: "same" | "del" | "ins"; text: string }>;
+/** Small word-level LCS diff; both inputs are live answers, never literals from this bundle. */
+export function wordDiff(before: string, after: string): readonly DiffToken[] {
+  const a = before.split(/(\s+)/u).filter((t) => t.length > 0);
+  const b = after.split(/(\s+)/u).filter((t) => t.length > 0);
+  const table: number[][] = Array.from({ length: a.length + 1 }, () =>
+    new Array<number>(b.length + 1).fill(0),
+  );
+  for (let i = a.length - 1; i >= 0; i -= 1)
+    for (let j = b.length - 1; j >= 0; j -= 1)
+      (table[i] as number[])[j] =
+        a[i] === b[j]
+          ? ((table[i + 1] as number[])[j + 1] as number) + 1
+          : Math.max(
+              (table[i + 1] as number[])[j] as number,
+              (table[i] as number[])[j + 1] as number,
+            );
+  const out: DiffToken[] = [];
+  let i = 0;
+  let j = 0;
+  while (i < a.length && j < b.length) {
+    if (a[i] === b[j]) {
+      out.push({ kind: "same", text: a[i] as string });
+      i += 1;
+      j += 1;
+    } else if (
+      ((table[i + 1] as number[])[j] as number) >= ((table[i] as number[])[j + 1] as number)
+    ) {
+      out.push({ kind: "del", text: a[i] as string });
+      i += 1;
+    } else {
+      out.push({ kind: "ins", text: b[j] as string });
+      j += 1;
+    }
+  }
+  for (; i < a.length; i += 1) out.push({ kind: "del", text: a[i] as string });
+  for (; j < b.length; j += 1) out.push({ kind: "ins", text: b[j] as string });
+  return out;
+}
 export type Lineage = Readonly<{ factId: string; revision: string; reason?: "sensitivity_policy" }>;
 export type Receipt = Readonly<{
   compilerVersion: string;
@@ -53,12 +140,12 @@ const receiptKeys = [
   "totalTokens",
 ].sort();
 const messages: Record<ApiFailure, string> = {
-  conflict: "Operation conflict. Start a new demo if it persists.",
-  denied: "Action denied.",
-  invalid: "Live API returned an invalid response.",
-  network: "Network connection lost.",
-  service: "Live service is unavailable.",
-  unknown: "Live service is not connected yet.",
+  conflict: "A step is still finishing or was replayed. Retry, or restart the session.",
+  denied: "Session expired or missing. Restart the session.",
+  invalid: "The response failed the browser's strict shape validation and was rejected.",
+  network: "Network connection lost. Retry.",
+  service: "Live service is unavailable. Try again shortly.",
+  unknown: "The live provider is paused by the operator's runtime control. Try again shortly.",
 };
 
 function record(value: unknown, keys: readonly string[]): Record<string, unknown> | undefined {

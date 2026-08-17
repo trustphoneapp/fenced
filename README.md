@@ -7,6 +7,38 @@ policy, and which correction changed the result.
 This independent Apache-2.0 project was created for the CockroachDB × AWS Build the Future of
 Agentic Memory hackathon. It has no private-product source dependency or integration.
 
+**Live demo:** <https://d2r4c62btm4zg8.cloudfront.net> · **Architecture:** [diagram](docs/hackathon/architecture-diagram.md) · **Devpost draft:** [text](docs/hackathon/devpost-submission-draft.md)
+
+## Try it in 60 seconds
+
+**Browser.** Open the demo, click **Run all five steps**, then read the *Before vs after correction*
+panel and the *Check it yourself* rows. Nothing on the page is pre-rendered; every value comes from
+the deployed API.
+
+**Terminal.** The session is a same-origin `__Host-` cookie, so a cookie jar is required:
+
+```bash
+API=https://d2r4c62btm4zg8.cloudfront.net; J=$(mktemp)
+for s in start ask_before correct ask_after latest_receipt; do
+  curl -s -c "$J" -b "$J" -H 'content-type: application/json' \
+    -d "{\"step\":\"$s\"}" "$API/api/demo" | jq -c '{step, revision, recalled, withheld}'
+done
+```
+
+Expect: `ask_before` recalls fact `1111…` at revision 1 and withholds `2222…` with
+`sensitivity_policy`; `correct` returns `revision: "2"`; `ask_after` recalls `1111…` at revision 2
+and still withholds `2222…`; `latest_receipt` returns the same receipt without a new provider call.
+
+## For judges · five-minute verification path
+
+| Minute | Do | Expect |
+| --- | --- | --- |
+| 0–1 | Run the 60-second path above | Five `200`s; recalled revision 1 → 2; the same fact withheld both times |
+| 1–2 | Read [`0008_hackathon_live.sql`](database/migrations/0008_hackathon_live.sql) and [`0010`](database/migrations/0010_hackathon_fk_read_grants.sql) | `CREATE VECTOR INDEX memory_facts_titan_scope_l2`; RLS forced; least-privilege roles; the FK read grants CockroachDB needs |
+| 2–3 | Read [`managed-mcp-queries.json`](docs/hackathon/managed-mcp-queries.json) and the [runbook](docs/hackathon/managed-mcp-readonly-runbook.md) | Official `select_query` / `explain_query` only; 0 rows unscoped → 1 / 1 / 2 rows once tenant scope is bound |
+| 3–4 | Read “Vector indexing, stated precisely” below | An explicit statement that live recall is a policy-filtered scan, and why |
+| 4–5 | Read [`infrastructure/template.yaml`](infrastructure/template.yaml) | Lambda role limited to one secret ARN and two Bedrock model ARNs; API throttle; budget alarm |
+
 ## Five-step demo
 
 The public contract accepts only these server-owned synthetic operations, in order:

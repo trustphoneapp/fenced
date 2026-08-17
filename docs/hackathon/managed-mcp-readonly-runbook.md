@@ -2,9 +2,12 @@
 
 ## Status and boundary
 
-This is an H18 local-preparation artifact. It has not connected to CockroachDB Cloud and is not
-runtime evidence. H18 remains `LOCAL_PREP_BLOCKED` for HG-3 until E4 either proves a server-bound,
-single-showcase-tenant scope or keeps Managed MCP disabled.
+Verified against the live CockroachDB Cloud cluster on 2026-08-17 as `zc_continuity_mcp_reader`.
+The three `select_query` calls in the pack return 0 rows until the session binds
+`continuity.tenant_id` and `continuity.server_purpose` via `set_config` (itself a `SELECT`), then
+return 1, 1 and 2 rows for that tenant. The `dvi-plan` `explain_query` is an operator proof taken
+with an administrative identity, because the reader deliberately holds no `SELECT` on
+`continuity.memory_facts`. The pack state is `LIVE_READ_ONLY_VERIFIED_2026_08_17`.
 
 The local H5 mock is an application test double. It is not CockroachDB Managed MCP and none of its
 custom names may be presented as Managed MCP tools.

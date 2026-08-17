@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 
 const expected = Object.freeze({
   schemaVersion: 1,
-  state: "LOCAL_PREP_BLOCKED",
+  state: "LIVE_READ_ONLY_VERIFIED_2026_08_17",
   calls: Object.freeze([
     Object.freeze({
       id: "task-status",
@@ -40,7 +40,7 @@ const forbidden =
 
 export function verifyManagedMcpPack(pack) {
   if (!exactKeys(pack, ["calls", "schemaVersion", "state"])) throw new Error("root contract");
-  if (pack.schemaVersion !== 1 || pack.state !== "LOCAL_PREP_BLOCKED") throw new Error("state");
+  if (pack.schemaVersion !== 1 || pack.state !== "LIVE_READ_ONLY_VERIFIED_2026_08_17") throw new Error("state");
   if (!Array.isArray(pack.calls) || pack.calls.length !== expected.calls.length)
     throw new Error("call count");
   for (const [index, call] of pack.calls.entries()) {

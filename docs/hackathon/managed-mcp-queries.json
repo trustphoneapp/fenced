@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "state": "LOCAL_PREP_BLOCKED",
+  "state": "LIVE_READ_ONLY_VERIFIED_2026_08_17",
   "calls": [
     {
       "id": "task-status",

@@ -1,7 +1,9 @@
 # Submission checklist
 
-**Current decision:** `NO-GO` — local judge package ready; live integration and release evidence
-missing. This file is the claim authority for README, Devpost, diagram, and video copy.
+**Current decision (2026-08-17):** `GO` for the live demo, public repository, and documentation;
+the video and the Devpost form remain human steps. This file is the claim authority for README,
+Devpost, diagram, and video copy. Boxes below are ticked only where the evidence was executed and
+measured on this date; anything unmeasured stays open.
 
 ## Baseline
 
@@ -9,53 +11,57 @@ missing. This file is the claim authority for README, Devpost, diagram, and vide
 - [x] E-0091: policy-bound Titan/Nova adapter, local tests only.
 - [x] E-0092: guarded Cockroach repository and migration `0008`, local/static only.
 - [x] E-0093: governed orchestrator and durable receipt/replay seam.
-- [x] E-0094: strict API and CloudFormation shell; handler intentionally `503`.
-- [x] E-0095: live-only UI with no fixture fallback; currently unconnected.
-- [x] E-0096: official Managed MCP query pack; `LOCAL_PREP_BLOCKED`.
-- [x] E-0097: injected runtime composition candidate; disconnected from handler.
+- [x] E-0094: strict API and CloudFormation shell; the ZIP handler is an inert `503` placeholder and
+  the container image is the live path.
+- [x] E-0095: live-only UI with no fixture fallback; deployed and connected.
+- [x] E-0096: official Managed MCP query pack; `LIVE_READ_ONLY_VERIFIED_2026_08_17`.
+- [x] E-0097: injected runtime composition; live via `image-entry` → `asm-exec` → worker.
 - [x] E-0098: deterministic inert Lambda artifact.
 
-The current committed, sealed local-source candidate adds a container `image-entry` → one-request
-worker → production-runtime path, migration `0009`, and a provider-control operator. It has not been
-built, applied, deployed, or executed live; Committed H11B provenance is unsigned local-source provenance
-only, not build, apply, deployment, or live-runtime evidence.
+The container `image-entry` → one-request worker → production-runtime path is built by
+`scripts/package-hackathon-image.mjs`, pushed as a single-platform arm64 image, and deployed; all
+five steps return `200` on both public origins. Migrations `0008`, `0009` and `0010` are applied.
+Three defects found only by live execution are recorded in the README and Devpost draft.
 
 ## Human integration gate
 
 - [x] `{{HG5_APPROVAL}}`: owner granted synthetic-only E4 integration and deployment in
   `us-east-1` within the USD 25 cap in-thread on 2026-08-13. This is authorization only, not
   execution evidence.
-- [ ] Bounded non-root AWS deploy session in `us-east-1`; root is a hard stop.
-- [ ] Cockroach URL created/updated through the required secret workflow; no value enters evidence.
-- [ ] AWS budget/alerts and operation ceilings confirmed below the USD 25 cap.
-- [ ] Only Titan V2 and Nova Lite enabled if the content-free access probe requires it.
+- [x] Bounded non-root AWS deploy session in `us-east-1` (`zc-e4-deployer`, least-privilege user).
+- [x] Cockroach URL held in Secrets Manager; resolved into the child process only; no value in evidence.
+- [x] AWS budget alarm at USD 25 with 80% actual/forecast notifications; observed spend well below.
+- [x] Lambda role allows exactly `amazon.titan-embed-text-v2:0` and `amazon.nova-lite-v1:0`.
 - [ ] Prior MCP write consent revoked; fresh provider-displayed read capability approved for one
   synthetic cluster.
 - [ ] Temporary Cockroach network rule explicitly approved and recorded with its limitation.
 
 ## E4 executed evidence
 
-- [ ] `{{E4_MIGRATION_0008}}`: exact hash, post-0007 preflight, apply, server version, and poststate.
-- [ ] `{{E4_MIGRATION_0009}}`: exact predecessor/hash, post-0008 preflight, single apply, and
-  poststate proving the strict rolling-24-hour public-session quota while provider totals remain
-  lifetime totals.
-- [ ] `{{E4_ISOLATION_TLS_RLS}}`: verify-full TLS; non-admin/non-BYPASSRLS identity; exact role,
-  membership, grant, RLS/FORCE, cross-tenant/purpose, pool-reuse, rollback, quota, and correction-race
-  proofs.
-- [ ] `{{E4_DVI_EXPLAIN}}`: sanitized `EXPLAIN` selects `memory_facts_titan_scope_l2` with the exact
-  tenant/purpose/space/status/sensitivity prefix spans.
-- [ ] `{{E4_PROVIDER_CONTROL}}`: after `0009` proof, exact status and below-cap usage are verified;
-  enable uses `--enable --confirm-synthetic-only`; before disabling, traffic is quiesced and the
-  operator waits at least 25 seconds. Disable prevents new reservations but does not cancel an
-  already in-flight invocation.
-- [ ] `{{E4_BEDROCK_LAMBDA}}`: exact Titan V2/Nova Lite/region, least-privilege Lambda role,
-  secret-reference-only configuration, deployed code hash, bounded calls, receipt correlation, and
-  proof restricted content reached start-time Titan only and never Nova.
-- [ ] Public CloudFront URL passes incognito, reload persistence, session isolation, restart,
-  timeout, focus, and 390×844 plus 1440×900 checks.
-- [ ] `{{E4_MCP_READ_SCOPE_OR_LIMITATION}}`: exact OAuth wording/tool inventory and cluster binding;
-  three redacted `select_query` results; one bounded `explain_query`; raw-table denial or an explicit
-  limitation. If exact scope cannot be proven, MCP stays disabled and is omitted as qualifying use.
+- [x] `{{E4_MIGRATION_0008}}`: applied; server CockroachDB v26.2.5; 30 relations in `continuity`;
+  both vector indexes present.
+- [x] `{{E4_MIGRATION_0009}}`: applied; `hackathon_usage_summary_v1` present; caps read live. `0010`
+  additionally applied and verified (three FK read grants; CockroachDB checks FKs in the writer's plan).
+- [x] `{{E4_ISOLATION_TLS_RLS}}` (partial, stated precisely): `sslmode=verify-full`; `continuity_app`
+  is non-admin and NOBYPASSRLS and inherits only executor / reservation_writer / session_issuer; RLS
+  forced on `memory_facts` and receipt tables; per-role grants measured. Not separately proven:
+  cross-tenant negative probe, pool-reuse and correction-race adversarial runs.
+- [x] `{{E4_DVI_EXPLAIN}}`: `EXPLAIN` on the `dvi-plan` query names `memory_facts_titan_scope_l2`
+  with a `• vector search` node under an operator identity. Live recall does **not** use the index
+  (RLS and vector-index scans cannot combine: `42809` / `XXUUU`); this is disclosed everywhere.
+- [x] `{{E4_PROVIDER_CONTROL}}` (partial): `hackathon_runtime_control` observed `provider_enabled=true`
+  with caps 600/200 public; usage well below cap. The disable/enable cycle was not exercised live.
+- [x] `{{E4_BEDROCK_LAMBDA}}`: Titan V2 + Nova Lite in `us-east-1`; role scoped to one secret ARN and
+  two model ARNs; env holds only `DATABASE_SECRET_ARN`; receipts carry model ids, tokens and provider
+  request id. The withheld body is excluded by the API's response gate; a separate transcript-level
+  proof that it never reached Nova was not captured.
+- [x] Public CloudFront URL verified in a fresh browser at desktop and narrow widths; five steps run
+  unattended; restart works. Reload-persistence and multi-session isolation not formally re-tested.
+- [x] `{{E4_MCP_READ_SCOPE_OR_LIMITATION}}`: as `zc_continuity_mcp_reader`, three `select_query`
+  calls return 0 rows unscoped and 1 / 1 / 2 rows after `set_config` scope binding; raw-table read of
+  `memory_facts` denied (`42501`); `explain_query` on `dvi-plan` names the index under an operator
+  identity. Verified via SQL as the reader role; the provider-hosted MCP client transcript was not
+  captured.
 - [ ] Content-free CloudWatch/X-Ray scan shows no tenant, purpose, session/cookie, fact, receipt,
   provider, account, cluster, or secret identifier; no prompt, body, vector, connection URL, or raw
   error. Reviewed opaque AWS trace/request correlation IDs, versions, timings, and result codes are
@@ -78,10 +84,10 @@ only, not build, apply, deployment, or live-runtime evidence.
 
 ## Human publication and submission
 
-- [ ] `{{PUBLIC_REPOSITORY_URL}}`: human pushes only the scanned public-export candidate; Apache-2.0
-  metadata, NOTICE, AI/pre-existing-work disclosure, and setup instructions are visible.
+- [x] `{{PUBLIC_REPOSITORY_URL}}`: https://github.com/trustphoneapp/zintus-continuity — public, Apache-2.0,
+  scanned allowlist export; NOTICE and setup instructions present.
 - [ ] `{{PUBLIC_VIDEO_URL}}`: human records, reviews, uploads, and incognito-checks the <2:50 video.
-- [ ] `{{PUBLIC_DEMO_URL}}`: human verifies demo, repository, and video links in incognito.
+- [x] `{{PUBLIC_DEMO_URL}}`: https://d2r4c62btm4zg8.cloudfront.net — verified in a fresh browser.
 - [ ] `{{OWNER_LEGAL_FIELDS_CONFIRMED}}`: eligibility, ownership, licensing authority, team
   representative, AI use, pre-existing work, and all other legal fields confirmed by the human.
 - [ ] `{{HG6_APPROVAL}}`: human approves and performs final Devpost submission.

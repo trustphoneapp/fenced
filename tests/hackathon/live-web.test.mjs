@@ -145,12 +145,12 @@ describe("live synthetic web flow", () => {
     expect(
       ["denied", "conflict", "unknown", "network", "invalid", "service"].map(failureMessage),
     ).toEqual([
-      "Action denied.",
-      "Operation conflict. Start a new demo if it persists.",
-      "Live service is not connected yet.",
-      "Network connection lost.",
-      "Live API returned an invalid response.",
-      "Live service is unavailable.",
+      "Session expired or missing. Restart the session.",
+      "A step is still finishing or was replayed. Retry, or restart the session.",
+      "The live provider is paused by the operator's runtime control. Try again shortly.",
+      "Network connection lost. Retry.",
+      "The response failed the browser's strict shape validation and was rejected.",
+      "Live service is unavailable. Try again shortly.",
     ]);
     for (const [status, kind] of [
       [403, "denied"],
@@ -222,7 +222,10 @@ describe("live synthetic web flow", () => {
     expect(main).toContain("Inspect {entry.step");
     expect(main).toContain("aria-busy={busy}");
     expect(main).toContain('role="alert"');
-    expect(main).toContain("LOCAL · UNCONNECTED");
+    // The pre-session badge must never imply a live connection: only `start` earns "SESSION · LIVE".
+    expect(main).toContain('const readyBadge = "READY · NO SESSION"');
+    expect(main).toContain('const liveBadge = "SESSION · LIVE"');
+    expect(main).not.toMatch(/UNCONNECTED|LIVE · CONNECTED|DATABASE · CONNECTED/u);
     expect(config).toContain("publicDir: false");
   });
 
