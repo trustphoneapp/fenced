@@ -36,7 +36,7 @@ paraphrase headings.
 | Time | Beat | Narration | On screen |
 | --- | --- | --- | --- |
 | 0:00–0:05 | Hook | "Your AI just told you 'Monday.' Would you bet on that — without seeing the receipt?" | Live page, cursor resting on **Run all five steps** |
-| 0:05–0:18 | Setup | "This is Zintus Continuity. Every answer ships a disclosure receipt: what was recalled, what was withheld, what changed. Enforced inside CockroachDB, not bolted on." | Cut to **What runs when you click** architecture panel, then back to the hero |
+| 0:05–0:18 | Setup | "This is Fenced. Every answer ships a disclosure receipt: what was recalled, what was withheld, what changed. Enforced inside CockroachDB, not bolted on." | Cut to **What runs when you click** architecture panel, then back to the hero |
 | 0:18–0:34 | Step 1 — Start | "Step one: start. It mints a session, seeds three synthetic facts, and embeds them with Amazon Titan v2 — stored as vectors inside CockroachDB." | Click **Run all five steps**; step-1 card fills in, badge flips to `SESSION · LIVE` |
 | 0:34–0:55 | Step 2 — Ask (before) | "Step two, ask before. Nova Lite answers a fixed question using memory recalled under CockroachDB row-level security — forced on, no exceptions. The answer: Monday. Two facts recalled at revision one. One withheld — reason: sensitivity policy. Its body never reached the model." | Receipt renders: **Recalled** group (green), **Withheld** group (rust) with the `sensitivity_policy` chip |
 | 0:55–1:10 | Step 3 — Correct | "Step three: correct. We supersede the launch-day fact — revision one to revision two — in one CockroachDB SERIALIZABLE transaction. Nothing is deleted; the old revision stays on record." | **Correct** card; revision chip flips 1 → 2 |
@@ -44,7 +44,7 @@ paraphrase headings.
 | 1:28–1:42 | Step 5 — Latest receipt | "Step five: latest receipt. This replays the exact same receipt from CockroachDB — zero new Bedrock calls. If this were regenerated, none of this would be provable. It's a database read." | **Check it yourself** panel: four client-computed checks, all passing |
 | 1:42–2:05 | Proof — Managed MCP | "Now, Cockroach proofs. Same SQL as our published Managed MCP query pack, run as a least-privilege, no-login reader role. Unscoped: zero rows across three tenant views. Bind the session's tenant scope — itself just a SELECT — and it reads real counts. An unscoped agent reads an empty database." | Click **Show Cockroach proofs**; **Managed MCP read scoping** card: `0 rows → N rows` per view |
 | 2:05–2:30 | Proof — honest tradeoff | "This card is the live recall plan — an EXPLAIN of the real SQL, under row-level security. It doesn't use the vector index. This one proves the index exists: eight columns, embedding included. We didn't use it here, because CockroachDB can't combine a vector-index scan with row-level security on one relation. We kept the security, and disclosed the cost." | **Live recall plan** card, then **Vector index definition** card |
-| 2:30–2:45 | Close | "Every claim on this screen is a live CockroachDB read, not a mock. Zintus Continuity: memory you can audit." | Pull back to the full page — five-step timeline, both receipts, diff panel, three proof cards; end on the repo and demo URLs |
+| 2:30–2:45 | Close | "Every claim on this screen is a live CockroachDB read, not a mock. Fenced: memory you can audit." | Pull back to the full page — five-step timeline, both receipts, diff panel, three proof cards; end on the repo and demo URLs |
 
 ## Production checklist
 
@@ -61,7 +61,7 @@ paraphrase headings.
 - **Pacing:** hold every result screen at least 2.5–3 seconds before cutting. Cut loading/API-wait
   moments entirely rather than speed-ramping.
 - **Captions:** burn in every spoken line. A persistent small lower-third naming the project
-  ("Zintus Continuity — CockroachDB × AWS") through at least the first few seconds helps a viewer
+  ("Fenced — CockroachDB × AWS") through at least the first few seconds helps a viewer
   who starts muted or skips around.
 
 ## Tool disclosure this video must support

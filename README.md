@@ -1,6 +1,6 @@
-# Zintus Continuity
+# Fenced
 
-Zintus Continuity is an agent-memory prototype that shows its work. Each answer includes a
+Fenced is an agent-memory prototype that shows its work. Each answer includes a
 content-free receipt describing which memory revisions were recalled, which were withheld by
 policy, and which correction changed the result.
 

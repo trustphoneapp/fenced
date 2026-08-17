@@ -5,7 +5,7 @@
 
 ## Project name
 
-Zintus Continuity
+Fenced
 
 ## Tagline
 
@@ -16,11 +16,11 @@ Agent memory that shows its work: recalled revisions, policy withholds, and corr
 Agent answers hide their retrieval. You get fluent text and no way to ask which memory produced it,
 what the agent was not allowed to see, or what changed after a correction. That gap is not a UX
 problem, it is an evidence problem, and it is the reason agent memory is hard to operate in
-regulated settings. Continuity treats the evidence as part of the product rather than as logging.
+regulated settings. Fenced treats the evidence as part of the product rather than as logging.
 
 ## What it does
 
-Continuity runs one fixed, synthetic five-step scenario:
+Fenced runs one fixed, synthetic five-step scenario:
 
 1. `start` opens an opaque session and seeds versioned synthetic facts.
 2. `ask_before` answers a question from authorized memory.
@@ -120,7 +120,7 @@ cosmetic: foreign keys are checked in the query plan, `array_fill()` does not ex
 requires a constant query vector, and a vector index scan cannot carry an RLS policy. Each of those
 turned into a real defect that static review did not catch and only live execution exposed.
 
-## What's next for Zintus Continuity
+## What's next for Fenced
 
 Reconciling vector indexing with row-level security, either by scoping retrieval through a
 security-definer boundary or by pushing the tenant predicate into the index scan. Beyond that:
@@ -160,7 +160,7 @@ demo work, not read in a doc.
 
 - Try it: <https://d2r4c62btm4zg8.cloudfront.net>
 - API: <https://h6rzzov3qi.execute-api.us-east-1.amazonaws.com>
-- Source: <https://github.com/trustphoneapp/zintus-continuity>
+- Source: <https://github.com/trustphoneapp/fenced>
 - Video: `{{PUBLIC_VIDEO_URL}}`
 
 Measured end-to-end latency on the deployed demo, CloudFront origin: `start` 2.2 s, `ask_before`

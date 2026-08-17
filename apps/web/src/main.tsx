@@ -615,7 +615,7 @@ function App() {
           <p className="claim">LIVE API · NO FIXTURES · SYNTHETIC DATA</p>
         </output>
         <p className="eyebrow">Agent memory with disclosure receipts</p>
-        <h1>Zintus Continuity</h1>
+        <h1>Fenced</h1>
         <p className="lede">
           Every answer ships a receipt: which memory revisions were recalled, which were withheld by
           policy, and what a correction changed. Memory and policy live in CockroachDB; models run

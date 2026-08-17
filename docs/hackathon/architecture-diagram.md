@@ -1,4 +1,4 @@
-# Continuity hackathon architecture
+# Fenced — hackathon architecture
 
 **Verified live on 2026-08-17.** All five steps return `200` on the public CloudFront and API
 Gateway origins; receipts show two recalled revisions and one reference withheld by sensitivity

@@ -84,7 +84,7 @@ Three defects found only by live execution are recorded in the README and Devpos
 
 ## Human publication and submission
 
-- [x] `{{PUBLIC_REPOSITORY_URL}}`: https://github.com/trustphoneapp/zintus-continuity — public, Apache-2.0,
+- [x] `{{PUBLIC_REPOSITORY_URL}}`: https://github.com/trustphoneapp/fenced — public, Apache-2.0,
   scanned allowlist export; NOTICE and setup instructions present.
 - [ ] `{{PUBLIC_VIDEO_URL}}`: human records, reviews, uploads, and incognito-checks the <2:50 video.
 - [x] `{{PUBLIC_DEMO_URL}}`: https://d2r4c62btm4zg8.cloudfront.net — verified in a fresh browser.
