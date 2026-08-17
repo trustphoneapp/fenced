@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:zintus-continuity:contracts:v1:registry",
+  "title": "Continuity schema catalog manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contractFamily",
+    "tenantId",
+    "requestedPurpose",
+    "serverPurpose",
+    "operationId",
+    "attemptId",
+    "catalogId",
+    "catalogRevision",
+    "schemas"
+  ],
+  "properties": {
+    "schemaVersion": { "$ref": "./envelope.schema.json#/$defs/schemaVersion" },
+    "contractFamily": { "const": "registry" },
+    "tenantId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+    "requestedPurpose": { "$ref": "./envelope.schema.json#/$defs/purpose" },
+    "serverPurpose": { "$ref": "./envelope.schema.json#/$defs/purpose" },
+    "operationId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+    "attemptId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+    "catalogId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+    "catalogRevision": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+    "schemas": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 7,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["family", "schemaId", "schemaDigest"],
+        "properties": {
+          "family": {
+            "enum": ["api", "event", "policy", "provider", "receipt", "registry", "task"]
+          },
+          "schemaId": {
+            "type": "string",
+            "minLength": 37,
+            "maxLength": 96,
+            "pattern": "^urn:zintus-continuity:contracts:v1:[a-z]+$"
+          },
+          "schemaDigest": { "$ref": "./envelope.schema.json#/$defs/sha256" }
+        }
+      }
+    }
+  }
+}

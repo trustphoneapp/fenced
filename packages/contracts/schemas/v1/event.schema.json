@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:zintus-continuity:contracts:v1:event",
+  "title": "Continuity immutable event metadata v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contractFamily",
+    "tenantId",
+    "requestedPurpose",
+    "serverPurpose",
+    "operationId",
+    "attemptId",
+    "eventId",
+    "eventRevision",
+    "eventType",
+    "occurredAt",
+    "subjectRef"
+  ],
+  "properties": {
+    "schemaVersion": { "$ref": "./envelope.schema.json#/$defs/schemaVersion" },
+    "contractFamily": { "const": "event" },
+    "tenantId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+    "requestedPurpose": { "$ref": "./envelope.schema.json#/$defs/purpose" },
+    "serverPurpose": { "$ref": "./envelope.schema.json#/$defs/purpose" },
+    "operationId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+    "attemptId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+    "eventId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+    "eventRevision": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+    "eventType": {
+      "enum": [
+        "interaction.appended",
+        "memory.revision.recorded",
+        "response.recorded",
+        "task.checkpointed"
+      ]
+    },
+    "occurredAt": { "$ref": "./envelope.schema.json#/$defs/dateTime" },
+    "subjectRef": { "$ref": "./envelope.schema.json#/$defs/reference" },
+    "payloadRef": { "$ref": "./envelope.schema.json#/$defs/reference" },
+    "causationId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+    "correlationId": { "$ref": "./envelope.schema.json#/$defs/identifier" }
+  }
+}

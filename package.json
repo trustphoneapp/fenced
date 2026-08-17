@@ -1,0 +1,42 @@
+{
+  "name": "zintus-continuity",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0 <25"
+  },
+  "packageManager": "pnpm@11.9.0",
+  "scripts": {
+    "clean:build": "node scripts/safe-build.mjs --clean-only",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "lint": "biome lint .",
+    "lint:deps": "node scripts/check-dependencies.mjs && node scripts/verify-source-security.mjs --staged-source",
+    "crdb:migrate:status": "node --env-file=.env scripts/h2-crdb-migrate.mjs --status",
+    "crdb:migration:status": "node --env-file=.env scripts/h2-crdb-migrate.mjs --migration-status",
+    "crdb:migrate:apply": "node --env-file=.env scripts/h2-crdb-migrate.mjs --apply",
+    "crdb:migrate:resume-0001": "node --env-file=.env scripts/h2-crdb-migrate.mjs --resume-from-0001",
+    "crdb:smoke": "node --env-file=.env scripts/h2-crdb-smoke.mjs",
+    "verify:manifests": "node scripts/check-manifests.mjs",
+    "verify:paths": "node scripts/check-tsconfig-paths.mjs",
+    "verify:source-security:staged": "node scripts/verify-source-security.mjs --staged-source",
+    "verify:source-security": "node scripts/verify-source-security.mjs",
+    "verify:supply-chain": "node scripts/verify-supply-chain.mjs --verify",
+    "typecheck": "tsc -b --pretty false",
+    "test": "vitest run",
+    "build": "node scripts/safe-build.mjs",
+    "verify": "node scripts/safe-verify.mjs",
+    "verify:cleanroom": "node scripts/verify-cleanroom.mjs && pnpm lint:deps"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.15",
+    "@types/node": "24.13.2",
+    "@types/pg": "8.15.6",
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3",
+    "typescript": "5.9.3",
+    "vite": "7.3.2",
+    "vitest": "4.1.10"
+  }
+}

@@ -1,0 +1,168 @@
+{
+  "capabilities": [
+    {
+      "layer": "api",
+      "source": "apps/api/src/index.ts",
+      "declaration": "apps/api/src/node-util-is-proxy.d.ts",
+      "specifier": "node:util",
+      "imported": "types",
+      "local": "nodeUtilTypes",
+      "member": "isProxy",
+      "callee": "nodeUtilTypes.isProxy",
+      "function": "isProxy",
+      "purpose": "Reject proxy-backed runtime results before public serialization"
+    },
+    {
+      "layer": "adapters-local",
+      "source": "packages/adapters-local/src/local-synthetic-fixture.ts",
+      "declaration": "packages/adapters-local/src/node-util-is-proxy.d.ts",
+      "specifier": "node:util",
+      "imported": "types",
+      "local": "nodeUtilTypes",
+      "member": "isProxy",
+      "callee": "nodeUtilTypes.isProxy",
+      "function": "rejectProxy",
+      "purpose": "Node-local proxy rejection before reflective validation"
+    },
+    {
+      "layer": "adapters-local",
+      "source": "packages/adapters-local/src/h4-bedrock-ports.ts",
+      "declaration": "packages/adapters-local/src/node-crypto-create-hash.d.ts",
+      "specifier": "node:crypto",
+      "imported": "createHash",
+      "local": "createHash",
+      "member": "createHash",
+      "callee": "createHash",
+      "function": "sha256",
+      "purpose": "Bind each pre-transmission policy decision to exact outbound bytes"
+    },
+    {
+      "layer": "adapters-local",
+      "source": "packages/adapters-local/src/hackathon-crdb.ts",
+      "declaration": "packages/adapters-local/src/node-util-is-proxy.d.ts",
+      "specifier": "node:util",
+      "imported": "types",
+      "local": "nodeUtilTypes",
+      "member": "isProxy",
+      "callee": "nodeUtilTypes.isProxy",
+      "function": "isProxy",
+      "purpose": "Reject proxy-backed request, vector, row, and error values before reflective validation"
+    },
+    {
+      "layer": "api",
+      "source": "apps/api/src/image-entry.ts",
+      "declaration": "apps/api/src/node-util-is-proxy.d.ts",
+      "specifier": "node:util",
+      "imported": "types",
+      "local": "nodeUtilTypes",
+      "member": "isProxy",
+      "callee": "nodeUtilTypes.isProxy",
+      "function": "isProxy",
+      "purpose": "Reject proxy-backed image-runner values before reflective validation"
+    },
+    {
+      "layer": "api",
+      "source": "apps/api/src/image-worker.ts",
+      "declaration": "apps/api/src/node-util-is-proxy.d.ts",
+      "specifier": "node:util",
+      "imported": "types",
+      "local": "nodeUtilTypes",
+      "member": "isProxy",
+      "callee": "nodeUtilTypes.isProxy",
+      "function": "isProxy",
+      "purpose": "Reject proxy-backed worker input before reflective validation"
+    },
+    {
+      "layer": "api",
+      "source": "apps/api/src/live-runtime.ts",
+      "declaration": "apps/api/src/node-util-is-proxy.d.ts",
+      "specifier": "node:util",
+      "imported": "types",
+      "local": "nodeTypes",
+      "member": "isProxy",
+      "callee": "nodeTypes.isProxy",
+      "function": "isProxy",
+      "purpose": "Reject proxy-backed live-runtime inputs before reflective validation"
+    },
+    {
+      "layer": "api",
+      "source": "apps/api/src/production-runtime.ts",
+      "declaration": "apps/api/src/node-util-is-proxy.d.ts",
+      "specifier": "node:util",
+      "imported": "types",
+      "local": "nodeUtilTypes",
+      "member": "isProxy",
+      "callee": "nodeUtilTypes.isProxy",
+      "function": "isProxy",
+      "purpose": "Reject proxy-backed production composition inputs before validation"
+    }
+  ],
+  "globals": {
+    "apps/web/src/main.tsx": ["fetch"]
+  },
+  "imports": {
+    "apps/api/src/image-entry.ts": ["node:child_process", "node:process"],
+    "apps/api/src/image-worker.ts": ["node:process"],
+    "apps/api/src/index.ts": ["node:crypto"],
+    "apps/api/src/live-runtime.ts": ["node:crypto"],
+    "apps/api/src/production-runtime.ts": ["node:process", "@aws-sdk/client-bedrock-runtime", "pg"],
+    "packages/adapters-local/src/h4-bedrock-ports.ts": [
+      "node:util",
+      "@aws-sdk/client-bedrock-runtime"
+    ],
+    "packages/adapters-local/src/hackathon-crdb.ts": ["pg"]
+  },
+  "layers": {
+    "foundation": {
+      "path": "packages/foundation",
+      "kind": "core",
+      "allow": []
+    },
+    "domain": {
+      "path": "packages/domain",
+      "kind": "core",
+      "allow": ["foundation"]
+    },
+    "contracts": {
+      "path": "packages/contracts",
+      "kind": "core",
+      "allow": ["foundation"]
+    },
+    "policy": {
+      "path": "packages/policy",
+      "kind": "core",
+      "allow": ["foundation", "domain", "contracts"]
+    },
+    "application": {
+      "path": "packages/application",
+      "kind": "core",
+      "allow": ["foundation", "domain", "contracts", "policy"]
+    },
+    "adapters-local": {
+      "path": "packages/adapters-local",
+      "kind": "adapter",
+      "allow": ["foundation", "domain", "contracts", "policy", "application"]
+    },
+    "api": {
+      "path": "apps/api",
+      "kind": "composition",
+      "allow": ["application", "adapters-local"]
+    },
+    "worker": {
+      "path": "apps/worker",
+      "kind": "composition",
+      "allow": ["application", "adapters-local"]
+    },
+    "web": {
+      "path": "apps/web",
+      "kind": "ui",
+      "allow": ["contracts"],
+      "external": ["react", "react-dom"]
+    },
+    "infrastructure": {
+      "path": "infrastructure",
+      "kind": "infrastructure",
+      "allow": []
+    }
+  }
+}

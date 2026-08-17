@@ -1,0 +1,280 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+  LambdaImageUri:
+    Type: String
+    AllowedPattern: '^[0-9]{12}\.dkr\.ecr\.us-east-1\.amazonaws\.com/zc-e4-continuity-demo@sha256:[a-f0-9]{64}$'
+  DatabaseSecretArn:
+    Type: String
+    AllowedPattern: '^arn:aws:secretsmanager:us-east-1:[0-9]{12}:secret:zc-e4-continuity-app-[A-Za-z0-9]{6}$'
+  BudgetAlertEmail:
+    Type: String
+    AllowedPattern: '^[^@\s]+@[^@\s]+$'
+
+Resources:
+  ApiLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      LogGroupName: /aws/apigateway/zc-e4-continuity-demo
+      RetentionInDays: 14
+
+  LambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      LogGroupName: /aws/lambda/zc-e4-continuity-demo
+      RetentionInDays: 14
+
+  DemoRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: zc-e4-continuity-demo-runtime
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: lambda.amazonaws.com }
+            Action: "sts:AssumeRole"
+      Policies:
+        - PolicyName: demo-runtime
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: ["logs:CreateLogStream", "logs:PutLogEvents"]
+                Resource: !Sub ${LambdaLogGroup.Arn}:*
+              - Effect: Allow
+                Action: ["xray:PutTraceSegments", "xray:PutTelemetryRecords"]
+                Resource: "*"
+              - Effect: Allow
+                Action: "secretsmanager:GetSecretValue"
+                Resource: !Ref DatabaseSecretArn
+              - Effect: Allow
+                Action: "bedrock:InvokeModel"
+                Resource:
+                  - arn:aws:bedrock:us-east-1::foundation-model/amazon.titan-embed-text-v2:0
+                  - arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-lite-v1:0
+
+  DemoFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Architectures: [arm64]
+      Code:
+        ImageUri: !Ref LambdaImageUri
+      Environment:
+        Variables:
+          DATABASE_SECRET_ARN: !Ref DatabaseSecretArn
+      FunctionName: zc-e4-continuity-demo
+      ImageConfig:
+        Command: [index.handler]
+      MemorySize: 512
+      PackageType: Image
+      ReservedConcurrentExecutions: 1
+      Role: !GetAtt DemoRole.Arn
+      Timeout: 25
+      TracingConfig: { Mode: Active }
+
+  MonthlyBudget:
+    Type: AWS::Budgets::Budget
+    Properties:
+      Budget:
+        BudgetLimit: { Amount: "25", Unit: USD }
+        BudgetName: !Sub ${AWS::StackName}-monthly
+        BudgetType: COST
+        TimeUnit: MONTHLY
+      NotificationsWithSubscribers:
+        - Notification:
+            ComparisonOperator: GREATER_THAN
+            NotificationType: ACTUAL
+            Threshold: 80
+            ThresholdType: PERCENTAGE
+          Subscribers:
+            - Address: !Ref BudgetAlertEmail
+              SubscriptionType: EMAIL
+        - Notification:
+            ComparisonOperator: GREATER_THAN
+            NotificationType: FORECASTED
+            Threshold: 80
+            ThresholdType: PERCENTAGE
+          Subscribers:
+            - Address: !Ref BudgetAlertEmail
+              SubscriptionType: EMAIL
+
+  DemoApi:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: zc-e4-continuity-demo
+      ProtocolType: HTTP
+
+  DemoIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref DemoApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DemoFunction.Arn}/invocations
+      PayloadFormatVersion: "2.0"
+
+  DemoRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref DemoApi
+      AuthorizationType: NONE
+      RouteKey: POST /api/demo
+      Target: !Join ["/", [integrations, !Ref DemoIntegration]]
+
+  HealthRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref DemoApi
+      AuthorizationType: NONE
+      RouteKey: GET /api/health
+      Target: !Join ["/", [integrations, !Ref DemoIntegration]]
+
+  DemoStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      AccessLogSettings:
+        DestinationArn: !GetAtt ApiLogGroup.Arn
+        Format: '{"requestId":"$context.requestId","status":"$context.status","latency":"$context.responseLatency"}'
+      ApiId: !Ref DemoApi
+      AutoDeploy: true
+      DefaultRouteSettings:
+        ThrottlingBurstLimit: 2
+        ThrottlingRateLimit: 1
+      StageName: $default
+
+  ApiInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref DemoFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${DemoApi}/*/*
+
+  SiteBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: !Sub zc-e4-continuity-demo-${AWS::AccountId}
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault: { SSEAlgorithm: AES256 }
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration: { Status: Enabled }
+
+  SiteOriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Description: Private S3 origin for synthetic demo assets
+        Name: zc-e4-continuity-site
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  DisabledCachePolicy:
+    Type: AWS::CloudFront::CachePolicy
+    Properties:
+      CachePolicyConfig:
+        DefaultTTL: 0
+        MaxTTL: 0
+        MinTTL: 0
+        Name: zc-e4-continuity-disabled-cache
+        ParametersInCacheKeyAndForwardedToOrigin:
+          CookiesConfig: { CookieBehavior: none }
+          EnableAcceptEncodingBrotli: false
+          EnableAcceptEncodingGzip: false
+          HeadersConfig: { HeaderBehavior: none }
+          QueryStringsConfig: { QueryStringBehavior: none }
+
+  ApiOriginRequestPolicy:
+    Type: AWS::CloudFront::OriginRequestPolicy
+    Properties:
+      OriginRequestPolicyConfig:
+        CookiesConfig:
+          CookieBehavior: whitelist
+          Cookies: [__Host-zc-session]
+        HeadersConfig:
+          HeaderBehavior: whitelist
+          Headers: [content-type]
+        Name: zc-e4-continuity-api-origin
+        QueryStringsConfig: { QueryStringBehavior: none }
+
+  SecurityHeaders:
+    Type: AWS::CloudFront::ResponseHeadersPolicy
+    Properties:
+      ResponseHeadersPolicyConfig:
+        Name: zc-e4-continuity-security-headers
+        SecurityHeadersConfig:
+          ContentSecurityPolicy:
+            ContentSecurityPolicy: "default-src 'self'; base-uri 'none'; frame-ancestors 'none'"
+            Override: true
+          ContentTypeOptions: { Override: true }
+          FrameOptions: { FrameOption: DENY, Override: true }
+          ReferrerPolicy: { ReferrerPolicy: no-referrer, Override: true }
+          StrictTransportSecurity:
+            AccessControlMaxAgeSec: 31536000
+            IncludeSubdomains: true
+            Override: true
+
+  Distribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        DefaultCacheBehavior:
+          CachePolicyId: !Ref DisabledCachePolicy
+          CachedMethods: [GET, HEAD]
+          Compress: true
+          ResponseHeadersPolicyId: !Ref SecurityHeaders
+          TargetOriginId: site
+          ViewerProtocolPolicy: redirect-to-https
+        DefaultRootObject: index.html
+        Enabled: true
+        HttpVersion: http2and3
+        Origins:
+          - DomainName: !GetAtt SiteBucket.RegionalDomainName
+            Id: site
+            OriginAccessControlId: !GetAtt SiteOriginAccessControl.Id
+            S3OriginConfig: { OriginAccessIdentity: "" }
+          - DomainName: !Sub ${DemoApi}.execute-api.${AWS::Region}.amazonaws.com
+            Id: api
+            CustomOriginConfig:
+              OriginProtocolPolicy: https-only
+              OriginSSLProtocols: [TLSv1.2]
+        CacheBehaviors:
+          - PathPattern: /api/*
+            AllowedMethods: [GET, HEAD, OPTIONS, POST]
+            CachePolicyId: !Ref DisabledCachePolicy
+            CachedMethods: [GET, HEAD]
+            Compress: true
+            OriginRequestPolicyId: !Ref ApiOriginRequestPolicy
+            ResponseHeadersPolicyId: !Ref SecurityHeaders
+            TargetOriginId: api
+            ViewerProtocolPolicy: https-only
+
+  SiteBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref SiteBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: cloudfront.amazonaws.com }
+            Action: "s3:GetObject"
+            Resource: !Sub ${SiteBucket.Arn}/*
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:distribution/${Distribution}
+
+Outputs:
+  DemoUrl:
+    Value: !Sub https://${Distribution.DomainName}

@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "state": "LOCAL_PREP_BLOCKED",
+  "calls": [
+    {
+      "id": "task-status",
+      "tool": "select_query",
+      "query": "SELECT reserved_steps, deletion_fence, expires_at FROM continuity.task_status_summary_v1 ORDER BY expires_at DESC, deletion_fence ASC LIMIT 25"
+    },
+    {
+      "id": "receipt-summary",
+      "tool": "select_query",
+      "query": "SELECT receipt_id, attempt_id, policy_version, context_compiler_version, retrieval_config_version, embedding_space, provider, model_id, provider_request_id, created_at FROM continuity.receipt_summary_v1 ORDER BY created_at DESC, receipt_id ASC LIMIT 25"
+    },
+    {
+      "id": "evidence-lineage",
+      "tool": "select_query",
+      "query": "SELECT receipt_id, fact_id, fact_revision, deletion_fence FROM continuity.evidence_lineage_summary_v1 ORDER BY receipt_id ASC, fact_id ASC, fact_revision ASC LIMIT 25"
+    },
+    {
+      "id": "dvi-plan",
+      "tool": "explain_query",
+      "query": "SELECT fact_id, fact_revision FROM continuity.memory_facts@{FORCE_INDEX=memory_facts_titan_scope_l2,NO_FULL_SCAN} WHERE tenant_id = '000000000000000000000000000000000000000000000000' AND server_purpose = 'hackathon-demo' AND embedding_space = 'zc.bedrock-titan-v2.1024' AND fact_status = 'active' AND sensitivity = 'public' ORDER BY embedding <-> array_fill(0::FLOAT8, ARRAY[1024])::VECTOR LIMIT 5"
+    }
+  ]
+}

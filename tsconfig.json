@@ -1,0 +1,16 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/foundation" },
+    { "path": "packages/domain" },
+    { "path": "packages/contracts" },
+    { "path": "packages/policy" },
+    { "path": "packages/application" },
+    { "path": "packages/adapters-local" },
+    { "path": "apps/api" },
+    { "path": "apps/worker" },
+    { "path": "apps/web" },
+    { "path": "infrastructure" },
+    { "path": "tsconfig.tools.json" }
+  ]
+}

@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:zintus-continuity:contracts:v1:policy",
+  "title": "Continuity disjoint policy decisions v1",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "contractFamily",
+        "stage",
+        "tenantId",
+        "requestedPurpose",
+        "serverPurpose",
+        "operationId",
+        "attemptId",
+        "decisionId",
+        "decisionRevision",
+        "decision",
+        "policyVersion",
+        "reasonCodes",
+        "effectfulTools",
+        "learning",
+        "export"
+      ],
+      "properties": {
+        "schemaVersion": { "$ref": "./envelope.schema.json#/$defs/schemaVersion" },
+        "contractFamily": { "const": "policy" },
+        "stage": { "const": "pre_retrieval" },
+        "tenantId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "requestedPurpose": { "$ref": "./envelope.schema.json#/$defs/purpose" },
+        "serverPurpose": { "$ref": "./envelope.schema.json#/$defs/purpose" },
+        "operationId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "attemptId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "decisionId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "decisionRevision": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+        "decision": { "enum": ["allow", "deny"] },
+        "policyVersion": { "$ref": "./envelope.schema.json#/$defs/version" },
+        "reasonCodes": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "RETRIEVAL_ALLOWED",
+              "RETRIEVAL_PURPOSE_DENIED",
+              "RETRIEVAL_SCOPE_DENIED",
+              "RETRIEVAL_VERSION_UNKNOWN"
+            ]
+          }
+        },
+        "effectfulTools": { "const": "disabled" },
+        "learning": { "const": "disabled" },
+        "export": { "const": "disabled" }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "contractFamily",
+        "stage",
+        "tenantId",
+        "requestedPurpose",
+        "serverPurpose",
+        "operationId",
+        "attemptId",
+        "decisionId",
+        "decisionRevision",
+        "decision",
+        "policyVersion",
+        "reasonCodes",
+        "provider",
+        "model",
+        "destinationClass",
+        "effectfulTools",
+        "learning",
+        "export"
+      ],
+      "properties": {
+        "schemaVersion": { "$ref": "./envelope.schema.json#/$defs/schemaVersion" },
+        "contractFamily": { "const": "policy" },
+        "stage": { "const": "pre_transmission" },
+        "tenantId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "requestedPurpose": { "$ref": "./envelope.schema.json#/$defs/purpose" },
+        "serverPurpose": { "$ref": "./envelope.schema.json#/$defs/purpose" },
+        "operationId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "attemptId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "decisionId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "decisionRevision": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+        "decision": { "enum": ["allow", "deny"] },
+        "policyVersion": { "$ref": "./envelope.schema.json#/$defs/version" },
+        "reasonCodes": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "TRANSMISSION_ALLOWED",
+              "TRANSMISSION_DESTINATION_DENIED",
+              "TRANSMISSION_POLICY_DENIED",
+              "TRANSMISSION_SCOPE_CHANGED",
+              "TRANSMISSION_VERSION_UNKNOWN"
+            ]
+          }
+        },
+        "provider": { "const": "amazon-bedrock@1" },
+        "model": { "$ref": "./envelope.schema.json#/$defs/version" },
+        "destinationClass": { "const": "bedrock_primary" },
+        "effectfulTools": { "const": "disabled" },
+        "learning": { "const": "disabled" },
+        "export": { "const": "disabled" }
+      }
+    }
+  ]
+}

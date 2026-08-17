@@ -1,0 +1,9 @@
+{
+  "layers": {
+    "layer": {
+      "path": "layer",
+      "kind": "core",
+      "allow": []
+    }
+  }
+}

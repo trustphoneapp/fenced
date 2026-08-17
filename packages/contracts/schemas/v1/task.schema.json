@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:zintus-continuity:contracts:v1:task",
+  "title": "Continuity disjoint task command and status metadata v1",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "contractFamily",
+        "messageKind",
+        "tenantId",
+        "requestedPurpose",
+        "serverPurpose",
+        "operationId",
+        "attemptId",
+        "taskId",
+        "taskVersion",
+        "command"
+      ],
+      "properties": {
+        "schemaVersion": { "$ref": "./envelope.schema.json#/$defs/schemaVersion" },
+        "contractFamily": { "const": "task" },
+        "messageKind": { "const": "command" },
+        "tenantId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "requestedPurpose": { "$ref": "./envelope.schema.json#/$defs/purpose" },
+        "serverPurpose": { "$ref": "./envelope.schema.json#/$defs/purpose" },
+        "operationId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "attemptId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "taskId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "taskVersion": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+        "command": { "enum": ["cancel", "inspect"] }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "contractFamily",
+        "messageKind",
+        "tenantId",
+        "requestedPurpose",
+        "serverPurpose",
+        "operationId",
+        "attemptId",
+        "taskId",
+        "taskVersion",
+        "state",
+        "outcome",
+        "updatedAt",
+        "errorCode"
+      ],
+      "properties": {
+        "schemaVersion": { "$ref": "./envelope.schema.json#/$defs/schemaVersion" },
+        "contractFamily": { "const": "task" },
+        "messageKind": { "const": "status" },
+        "tenantId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "requestedPurpose": { "$ref": "./envelope.schema.json#/$defs/purpose" },
+        "serverPurpose": { "$ref": "./envelope.schema.json#/$defs/purpose" },
+        "operationId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "attemptId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "taskId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "taskVersion": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+        "state": { "enum": ["cancelled", "completed", "failed", "pending", "running", "unknown"] },
+        "outcome": { "enum": ["denied", "failed", "partial", "succeeded", "unknown"] },
+        "updatedAt": { "$ref": "./envelope.schema.json#/$defs/dateTime" },
+        "checkpointRef": { "$ref": "./envelope.schema.json#/$defs/reference" },
+        "errorCode": {
+          "enum": [
+            "TASK_NONE",
+            "TASK_CANCELLED",
+            "TASK_NOT_FOUND",
+            "TASK_RESULT_PARTIAL",
+            "TASK_RESULT_UNKNOWN",
+            "TASK_TERMINAL_FAILURE"
+          ]
+        }
+      }
+    }
+  ]
+}

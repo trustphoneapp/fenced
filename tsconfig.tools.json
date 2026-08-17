@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist-tools",
+    "rootDir": ".",
+    "tsBuildInfoFile": "dist-tools/tsconfig.tsbuildinfo",
+    "types": ["node", "vitest/globals"]
+  },
+  "include": [
+    "tests/**/*.test.ts",
+    "packages/contracts/src/**/*.ts",
+    "packages/foundation/src/**/*.ts",
+    "vitest.config.ts"
+  ]
+}

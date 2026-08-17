@@ -1,0 +1,346 @@
+{
+  "$id": "urn:zintus-continuity:contracts:semantics:v1",
+  "schemaVersion": "zc.contracts.v1",
+  "profileVersion": "continuity.contract-semantics@1",
+  "families": {
+    "api": {
+      "server_response": {
+        "succeeded": ["API_NONE", "content_required"],
+        "partial": ["API_RESULT_PARTIAL", "content_required"],
+        "denied": ["API_POLICY_DENIED", "content_forbidden"],
+        "failed": ["API_REQUEST_INVALID", "content_forbidden"],
+        "unknown": ["API_RESULT_UNAVAILABLE", "content_forbidden"]
+      }
+    },
+    "event": {
+      "allowedProperties": [
+        "attemptId",
+        "causationId",
+        "contractFamily",
+        "correlationId",
+        "eventId",
+        "eventRevision",
+        "eventType",
+        "occurredAt",
+        "operationId",
+        "payloadRef",
+        "requestedPurpose",
+        "schemaVersion",
+        "serverPurpose",
+        "subjectRef",
+        "tenantId"
+      ],
+      "constBindings": {
+        "contractFamily": "event"
+      },
+      "enumBindings": {
+        "eventType": [
+          "interaction.appended",
+          "memory.revision.recorded",
+          "response.recorded",
+          "task.checkpointed"
+        ]
+      },
+      "opaqueReference": {
+        "maxLength": 48,
+        "minLength": 48,
+        "pattern": "^[0-9a-f]{48}$",
+        "type": "string"
+      },
+      "refBindings": {
+        "attemptId": "./envelope.schema.json#/$defs/identifier",
+        "causationId": "./envelope.schema.json#/$defs/identifier",
+        "correlationId": "./envelope.schema.json#/$defs/identifier",
+        "eventId": "./envelope.schema.json#/$defs/identifier",
+        "eventRevision": "./envelope.schema.json#/$defs/positiveUint64",
+        "occurredAt": "./envelope.schema.json#/$defs/dateTime",
+        "operationId": "./envelope.schema.json#/$defs/identifier",
+        "payloadRef": "./envelope.schema.json#/$defs/reference",
+        "requestedPurpose": "./envelope.schema.json#/$defs/purpose",
+        "schemaVersion": "./envelope.schema.json#/$defs/schemaVersion",
+        "serverPurpose": "./envelope.schema.json#/$defs/purpose",
+        "subjectRef": "./envelope.schema.json#/$defs/reference",
+        "tenantId": "./envelope.schema.json#/$defs/identifier"
+      },
+      "requiredProperties": [
+        "attemptId",
+        "contractFamily",
+        "eventId",
+        "eventRevision",
+        "eventType",
+        "occurredAt",
+        "operationId",
+        "requestedPurpose",
+        "schemaVersion",
+        "serverPurpose",
+        "subjectRef",
+        "tenantId"
+      ],
+      "semanticRule": "closed_metadata_only"
+    },
+    "policy": {
+      "pre_retrieval": {
+        "allow": ["RETRIEVAL_ALLOWED"],
+        "deny": ["RETRIEVAL_PURPOSE_DENIED", "RETRIEVAL_SCOPE_DENIED", "RETRIEVAL_VERSION_UNKNOWN"]
+      },
+      "pre_transmission": {
+        "allow": ["TRANSMISSION_ALLOWED"],
+        "deny": [
+          "TRANSMISSION_DESTINATION_DENIED",
+          "TRANSMISSION_POLICY_DENIED",
+          "TRANSMISSION_SCOPE_CHANGED",
+          "TRANSMISSION_VERSION_UNKNOWN"
+        ]
+      }
+    },
+    "provider": {
+      "denied": {
+        "denied": ["PROVIDER_POLICY_DENIED", "PROVIDER_SCOPE_CHANGED"],
+        "unknown": ["PROVIDER_VERSION_UNKNOWN"]
+      },
+      "result": {
+        "succeeded": ["PROVIDER_NONE", "input_required", "output_required"],
+        "partial": ["PROVIDER_PARTIAL", "input_required", "output_required"],
+        "failed": ["PROVIDER_TERMINAL_FAILURE", "input_required", "output_forbidden"],
+        "unknown": ["PROVIDER_RESULT_UNAVAILABLE", "input_required", "output_forbidden"]
+      }
+    },
+    "receipt": {
+      "sourceEvidenceTupleMember": "source_evidence.id_revision_pairs",
+      "providerRevisionSource": "provider_model_version.provider_revision",
+      "destinationRevisionSource": "provider_model_version.destination_revision",
+      "credentialSelectorSource": "provider_model_version.credential_selector_id+credential_selector_revision",
+      "effectReservationApplicability": "provider_model_version.effect_reservation_applicability+effect_reservation_id",
+      "dispatchStageFacts": {
+        "AS0_LOCAL_PREATTEMPT_NO_CLAIM": "no_external_attempt",
+        "AS1_PREALLOCATED_NOT_CLAIMED": "no_external_attempt",
+        "AS2_CLAIMED_NO_LEASE": "pre_dispatch",
+        "AS3_LEASE_BOUND_NO_EFFECT_OR_PRE_EFFECT": "external_attempt_possible",
+        "AS4_LEASE_BOUND_EFFECT_ALLOCATED": "external_attempt_effect_allocated"
+      },
+      "dispatchEvidenceFacts": {
+        "dispatch_attempt": "external_attempt_possible"
+      },
+      "allowedReceiptTuples": [
+        ["authorization", "approval", "ALLOW", null, "authorized", "required", "optional"],
+        [
+          "authorization",
+          "approval",
+          "DENY",
+          null,
+          "cancelled",
+          "typed_none",
+          "terminal_stage_fact"
+        ],
+        ["authorization", "authority", "ALLOW", null, "authorized", "required", "optional"],
+        ["authorization", "authority", "DENY", null, "failed", "typed_none", "terminal_stage_fact"],
+        ["authorization", "capability", "ALLOW", null, "authorized", "required", "optional"],
+        ["authorization", "capability", "DENY", null, "invalid", "typed_none", "forbidden"],
+        ["decision", "decision", "ALLOW", null, "accepted", "typed_none", "forbidden"],
+        ["decision", "decision", "ALLOW", null, "supported", "typed_none", "forbidden"],
+        ["decision", "decision", "DENY", null, "invalid", "typed_none", "forbidden"],
+        ["decision", "decision", "DENY", null, "limited", "typed_none", "forbidden"],
+        ["decision", "decision", "DENY", null, "unknown", "typed_none", "forbidden"],
+        [
+          "effect_settlement",
+          "runtime_outcome",
+          "NOT_APPLICABLE",
+          "FAILED",
+          "failed",
+          "required",
+          "terminal_stage_fact"
+        ],
+        [
+          "effect_settlement",
+          "runtime_outcome",
+          "NOT_APPLICABLE",
+          "NO_EFFECT",
+          "cancelled",
+          "required",
+          "terminal_stage_fact"
+        ],
+        [
+          "effect_settlement",
+          "runtime_outcome",
+          "NOT_APPLICABLE",
+          "SUCCEEDED",
+          "completed",
+          "required",
+          "required"
+        ],
+        [
+          "effect_settlement",
+          "runtime_outcome",
+          "NOT_APPLICABLE",
+          "UNKNOWN",
+          "unknown",
+          "typed_none",
+          "optional"
+        ],
+        [
+          "lifecycle",
+          "artifact",
+          "NOT_APPLICABLE",
+          null,
+          "body_unavailable",
+          "typed_none",
+          "forbidden"
+        ],
+        [
+          "lifecycle",
+          "fact",
+          "NOT_APPLICABLE",
+          "NO_EFFECT",
+          "deleted_tombstoned",
+          "typed_none",
+          "forbidden"
+        ],
+        [
+          "lifecycle",
+          "receipt",
+          "NOT_APPLICABLE",
+          "NO_EFFECT",
+          "superseded",
+          "typed_none",
+          "forbidden"
+        ],
+        [
+          "result_admission",
+          "evidence",
+          "DENY",
+          "FAILED",
+          "failed",
+          "required",
+          "terminal_stage_fact"
+        ],
+        ["result_admission", "result", "ALLOW", "SUCCEEDED", "completed", "required", "required"],
+        [
+          "result_admission",
+          "runtime_outcome",
+          "DENY",
+          "UNKNOWN",
+          "unknown",
+          "typed_none",
+          "optional"
+        ],
+        [
+          "supersession",
+          "receipt",
+          "NOT_APPLICABLE",
+          "NO_EFFECT",
+          "superseded",
+          "typed_none",
+          "forbidden"
+        ],
+        [
+          "transmission",
+          "runtime_outcome",
+          "ALLOW",
+          "SUCCEEDED",
+          "completed",
+          "required",
+          "required"
+        ],
+        [
+          "transmission",
+          "runtime_outcome",
+          "ALLOW",
+          null,
+          "provisional_streaming",
+          "required",
+          "required"
+        ],
+        ["transmission", "runtime_outcome", "ALLOW", null, "transmitting", "required", "required"],
+        [
+          "transmission",
+          "runtime_outcome",
+          "DENY",
+          "FAILED",
+          "failed",
+          "required",
+          "terminal_stage_fact"
+        ],
+        [
+          "transmission",
+          "runtime_outcome",
+          "DENY",
+          "NO_EFFECT",
+          "cancelled",
+          "required",
+          "terminal_stage_fact"
+        ],
+        [
+          "transmission",
+          "runtime_outcome",
+          "DENY",
+          "NO_EFFECT",
+          "failed",
+          "required",
+          "terminal_stage_fact"
+        ],
+        [
+          "transmission",
+          "runtime_outcome",
+          "DENY",
+          "POSSIBLE_EFFECT",
+          "cancelled",
+          "required",
+          "terminal_stage_fact"
+        ],
+        [
+          "transmission",
+          "runtime_outcome",
+          "DENY",
+          "POSSIBLE_EFFECT",
+          "failed",
+          "required",
+          "terminal_stage_fact"
+        ],
+        [
+          "transmission",
+          "runtime_outcome",
+          "DENY",
+          "UNKNOWN",
+          "cancelled",
+          "required",
+          "terminal_stage_fact"
+        ],
+        [
+          "transmission",
+          "runtime_outcome",
+          "DENY",
+          "UNKNOWN",
+          "failed",
+          "required",
+          "terminal_stage_fact"
+        ],
+        ["transmission", "runtime_outcome", "DENY", null, "unknown", "typed_none", "optional"],
+        ["verification", "claim", "ALLOW", null, "supported", "typed_none", "forbidden"],
+        ["verification", "claim", "DENY", null, "unknown", "typed_none", "forbidden"],
+        ["verification", "evidence", "DENY", null, "limited", "typed_none", "forbidden"],
+        ["verification", "receipt", "DENY", null, "invalid", "typed_none", "forbidden"]
+      ]
+    },
+    "registry": {
+      "schemas": {
+        "api": "urn:zintus-continuity:contracts:v1:api",
+        "event": "urn:zintus-continuity:contracts:v1:event",
+        "policy": "urn:zintus-continuity:contracts:v1:policy",
+        "provider": "urn:zintus-continuity:contracts:v1:provider",
+        "receipt": "urn:zintus-continuity:contracts:v1:receipt",
+        "registry": "urn:zintus-continuity:contracts:v1:registry",
+        "task": "urn:zintus-continuity:contracts:v1:task"
+      }
+    },
+    "task": {
+      "status": {
+        "pending": ["unknown", "TASK_RESULT_UNKNOWN", "checkpoint_forbidden"],
+        "running": ["partial", "TASK_RESULT_PARTIAL", "checkpoint_forbidden"],
+        "unknown": ["denied", "TASK_NOT_FOUND", "checkpoint_forbidden"],
+        "completed": ["succeeded", "TASK_NONE", "checkpoint_required"],
+        "cancelled": ["denied", "TASK_CANCELLED", "checkpoint_forbidden"],
+        "failed": ["failed", "TASK_TERMINAL_FAILURE", "checkpoint_forbidden"]
+      }
+    }
+  }
+}

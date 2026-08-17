@@ -1,0 +1,14 @@
+{
+  "layers": {
+    "foundation": {
+      "path": "foundation",
+      "kind": "core",
+      "allow": []
+    },
+    "application": {
+      "path": "application",
+      "kind": "core",
+      "allow": ["foundation"]
+    }
+  }
+}

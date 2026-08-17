@@ -1,0 +1,20 @@
+{
+  "name": "@zintus-continuity/foundation",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./safe-data-access": {
+      "types": "./dist/safe-data-access.d.ts",
+      "default": "./dist/safe-data-access.js"
+    },
+    "./owned-json": {
+      "types": "./dist/owned-json.d.ts",
+      "default": "./dist/owned-json.js"
+    }
+  }
+}

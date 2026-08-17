@@ -1,0 +1,108 @@
+{
+  "claim": "LOCAL_SYNTHETIC_ONLY",
+  "concept": "Continuity Recall Ledger — the memory layer that shows its work",
+  "steps": [
+    {
+      "id": "ask1",
+      "title": "Ask (standard tier)",
+      "question": "What is the launch day and budget?",
+      "answer": "From authorized memory:\n1. Continuity launch day is monday for the hackathon demo (fact 11111111… r1)\n2. Judges query disclosure receipts through Managed MCP read-only (fact 33333333… r1)",
+      "receipt": {
+        "accessTier": "standard",
+        "askedAt": "2026-08-07T01:00:00.000Z",
+        "embeddingSpace": "zc.local-synthetic-embedding.v1",
+        "policyVersion": "zc.recall-policy.v1",
+        "recalled": [
+          {
+            "factId": "111111111111111111111111111111111111111111111111",
+            "revision": "1",
+            "similarity": 0.9568
+          },
+          {
+            "factId": "333333333333333333333333333333333333333333333333",
+            "revision": "1",
+            "similarity": 0.8789
+          }
+        ],
+        "receiptId": "000000000000000000000000000000000000000000000001",
+        "serverPurpose": "continuity.memory",
+        "tenantId": "dddddddddddddddddddddddddddddddddddddddddddddddd",
+        "withheld": [
+          {
+            "factId": "222222222222222222222222222222222222222222222222",
+            "reason": "sensitivity_policy",
+            "revision": "1"
+          }
+        ],
+        "recordFamily": "disclosure_receipt",
+        "recordSchemaVersion": "zc.internal.disclosure-receipt.v1"
+      },
+      "note": "Restricted budget is withheld before the model; receipt names the reason."
+    },
+    {
+      "id": "correct",
+      "title": "Correct launch day",
+      "question": "Supersede monday → sunday",
+      "answer": null,
+      "receipt": null,
+      "note": "Propagation is ID-only (no memory body on the wire)."
+    },
+    {
+      "id": "ask2",
+      "title": "Ask after correction",
+      "question": "When is launch day?",
+      "answer": "From authorized memory:\n1. Continuity launch day is sunday for the hackathon demo (fact 11111111… r2)\n2. Judges query disclosure receipts through Managed MCP read-only (fact 33333333… r1)",
+      "receipt": {
+        "accessTier": "standard",
+        "askedAt": "2026-08-07T01:00:00.000Z",
+        "embeddingSpace": "zc.local-synthetic-embedding.v1",
+        "policyVersion": "zc.recall-policy.v1",
+        "recalled": [
+          {
+            "factId": "111111111111111111111111111111111111111111111111",
+            "revision": "2",
+            "similarity": 0.9834
+          },
+          {
+            "factId": "333333333333333333333333333333333333333333333333",
+            "revision": "1",
+            "similarity": 0.8327
+          }
+        ],
+        "receiptId": "000000000000000000000000000000000000000000000002",
+        "serverPurpose": "continuity.memory",
+        "tenantId": "dddddddddddddddddddddddddddddddddddddddddddddddd",
+        "withheld": [
+          {
+            "factId": "222222222222222222222222222222222222222222222222",
+            "reason": "sensitivity_policy",
+            "revision": "1"
+          }
+        ],
+        "recordFamily": "disclosure_receipt",
+        "recordSchemaVersion": "zc.internal.disclosure-receipt.v1"
+      },
+      "note": "Answer and receipt now bind revision 2."
+    }
+  ],
+  "mcp": {
+    "tools": [
+      {
+        "name": "receipt_summary.v1",
+        "description": "Read-only disclosure receipt summaries for the current synthetic tenant"
+      },
+      {
+        "name": "evidence_lineage_summary.v1",
+        "description": "Read-only correction/retraction propagation lineage (IDs only)"
+      }
+    ],
+    "receiptSummary": {
+      "outcome": "ok",
+      "text": "count=2; latest: receipt 000000000000… tier=standard policy=zc.recall-policy.v1 recalled=[11111111…@r2 sim=0.9834; 33333333…@r1 sim=0.8327] withheld=[22222222…@r1 (sensitivity_policy)]"
+    },
+    "lineageSummary": {
+      "outcome": "ok",
+      "text": "supersede fact 11111111… 1→2"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "capabilities": [
+    {
+      "layer": "adapters-local",
+      "source": "packages/adapters-local/src/local-synthetic-fixture.ts",
+      "declaration": "packages/adapters-local/src/node-util-is-proxy.d.ts",
+      "specifier": "node:util",
+      "imported": "types",
+      "local": "nodeUtilTypes",
+      "member": "isProxy",
+      "callee": "nodeUtilTypes.isProxy",
+      "function": "rejectProxy",
+      "purpose": "Node-local proxy rejection before reflective validation"
+    }
+  ],
+  "layers": {
+    "adapters-local": { "path": "packages/adapters-local", "kind": "adapter", "allow": [] }
+  }
+}

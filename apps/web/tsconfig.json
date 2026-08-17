@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "lib": ["ES2024", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "outDir": "dist-types",
+    "rootDir": ".",
+    "tsBuildInfoFile": "dist-types/tsconfig.tsbuildinfo"
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.json", "vite.config.ts"],
+  "references": [{ "path": "../../packages/contracts" }]
+}

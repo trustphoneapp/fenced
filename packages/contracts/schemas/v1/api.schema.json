@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:zintus-continuity:contracts:v1:api",
+  "title": "Continuity disjoint public API metadata v1",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "contractFamily",
+        "variant",
+        "clientRequestId",
+        "requestedPurpose",
+        "route"
+      ],
+      "properties": {
+        "schemaVersion": { "$ref": "./envelope.schema.json#/$defs/schemaVersion" },
+        "contractFamily": { "const": "api" },
+        "variant": { "const": "untrusted_ingress" },
+        "clientRequestId": { "$ref": "./envelope.schema.json#/$defs/clientToken" },
+        "requestedPurpose": { "$ref": "./envelope.schema.json#/$defs/purpose" },
+        "route": { "enum": ["continuity.respond", "continuity.status"] }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "contractFamily",
+        "variant",
+        "tenantId",
+        "requestedPurpose",
+        "serverPurpose",
+        "operationId",
+        "attemptId",
+        "messageId",
+        "messageRevision",
+        "route"
+      ],
+      "properties": {
+        "schemaVersion": { "$ref": "./envelope.schema.json#/$defs/schemaVersion" },
+        "contractFamily": { "const": "api" },
+        "variant": { "const": "server_admitted_request" },
+        "tenantId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "requestedPurpose": { "$ref": "./envelope.schema.json#/$defs/purpose" },
+        "serverPurpose": { "$ref": "./envelope.schema.json#/$defs/purpose" },
+        "operationId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "attemptId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "messageId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "messageRevision": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+        "route": { "enum": ["continuity.respond", "continuity.status"] }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "contractFamily",
+        "variant",
+        "tenantId",
+        "requestedPurpose",
+        "serverPurpose",
+        "operationId",
+        "attemptId",
+        "messageId",
+        "messageRevision",
+        "route",
+        "outcome",
+        "errorCode"
+      ],
+      "properties": {
+        "schemaVersion": { "$ref": "./envelope.schema.json#/$defs/schemaVersion" },
+        "contractFamily": { "const": "api" },
+        "variant": { "const": "server_response" },
+        "tenantId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "requestedPurpose": { "$ref": "./envelope.schema.json#/$defs/purpose" },
+        "serverPurpose": { "$ref": "./envelope.schema.json#/$defs/purpose" },
+        "operationId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "attemptId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "messageId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "messageRevision": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+        "route": { "enum": ["continuity.respond", "continuity.status"] },
+        "outcome": { "enum": ["denied", "failed", "partial", "succeeded", "unknown"] },
+        "errorCode": {
+          "enum": [
+            "API_NONE",
+            "API_POLICY_DENIED",
+            "API_REQUEST_INVALID",
+            "API_RESULT_PARTIAL",
+            "API_RESULT_UNAVAILABLE"
+          ]
+        },
+        "contentRef": { "$ref": "./envelope.schema.json#/$defs/reference" }
+      }
+    }
+  ]
+}

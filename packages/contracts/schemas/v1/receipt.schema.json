@@ -1,0 +1,1302 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:zintus-continuity:contracts:v1:receipt",
+  "title": "Continuity receipt/3 with detached signature envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contractFamily",
+    "tenantId",
+    "requestedPurpose",
+    "serverPurpose",
+    "operationId",
+    "attemptId",
+    "logicalReceipt",
+    "signatureEnvelope"
+  ],
+  "properties": {
+    "schemaVersion": { "$ref": "./envelope.schema.json#/$defs/schemaVersion" },
+    "contractFamily": { "const": "receipt" },
+    "tenantId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+    "requestedPurpose": { "$ref": "./envelope.schema.json#/$defs/purpose" },
+    "serverPurpose": { "$ref": "./envelope.schema.json#/$defs/purpose" },
+    "operationId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+    "attemptId": {
+      "anyOf": [{ "$ref": "./envelope.schema.json#/$defs/identifier" }, { "const": null }]
+    },
+    "logicalReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "envelope_type",
+        "receipt_schema",
+        "receipt_id",
+        "receipt_type",
+        "profile_id",
+        "environment_id",
+        "chain_id",
+        "tenant_id",
+        "principal_id",
+        "origin_mode",
+        "purpose_id",
+        "operation_id",
+        "operation_type",
+        "lane_id",
+        "capsule_id",
+        "attempt_id",
+        "attempt_ordinal",
+        "idempotency_id",
+        "semantic_class",
+        "decision_code",
+        "outcome_code",
+        "receipt_state",
+        "limitation_codes",
+        "issued_at_ms",
+        "valid_from_ms",
+        "valid_until_ms",
+        "source_refs",
+        "evidence_refs",
+        "version_tuple",
+        "sequence",
+        "predecessor_receipt_id",
+        "predecessor_signature_commitment",
+        "checkpoint",
+        "signature_suite",
+        "signing_key_id",
+        "issuer_id",
+        "verifier_policy_id",
+        "lifecycle_binding",
+        "supersedes_receipt_ids",
+        "projection_hint",
+        "erasable_body_ref",
+        "scope_commitments",
+        "request_id",
+        "request_commitment",
+        "active_memory_revisions",
+        "tool_intent_binding",
+        "approval_binding",
+        "signing_key_owner_id",
+        "key_lifecycle_at_issuance",
+        "issuance_key_view",
+        "authorized_external_tuple",
+        "dispatched_external_tuple"
+      ],
+      "properties": {
+        "envelope_type": { "const": "receipt" },
+        "receipt_schema": { "const": "continuity.receipt/3" },
+        "receipt_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "receipt_type": {
+          "enum": [
+            "decision",
+            "authorization",
+            "transmission",
+            "result_admission",
+            "effect_settlement",
+            "lifecycle",
+            "verification",
+            "supersession"
+          ]
+        },
+        "profile_id": { "$ref": "./envelope.schema.json#/$defs/version" },
+        "environment_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "chain_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "tenant_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "principal_id": {
+          "anyOf": [{ "$ref": "./envelope.schema.json#/$defs/identifier" }, { "const": null }]
+        },
+        "origin_mode": { "enum": ["principal_delegated", "system_originated"] },
+        "purpose_id": { "$ref": "./envelope.schema.json#/$defs/purpose" },
+        "operation_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "operation_type": { "$ref": "./envelope.schema.json#/$defs/version" },
+        "lane_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "capsule_id": {
+          "anyOf": [{ "$ref": "./envelope.schema.json#/$defs/identifier" }, { "const": null }]
+        },
+        "attempt_id": {
+          "anyOf": [{ "$ref": "./envelope.schema.json#/$defs/identifier" }, { "const": null }]
+        },
+        "attempt_ordinal": { "$ref": "./envelope.schema.json#/$defs/uint64" },
+        "idempotency_id": {
+          "anyOf": [{ "$ref": "./envelope.schema.json#/$defs/identifier" }, { "const": null }]
+        },
+        "semantic_class": {
+          "enum": [
+            "fact",
+            "claim",
+            "evidence",
+            "result",
+            "limitation",
+            "decision",
+            "authority",
+            "approval",
+            "capability",
+            "receipt",
+            "artifact",
+            "runtime_outcome"
+          ]
+        },
+        "decision_code": { "enum": ["ALLOW", "DENY", "NOT_APPLICABLE"] },
+        "outcome_code": {
+          "anyOf": [
+            { "enum": ["FAILED", "NO_EFFECT", "POSSIBLE_EFFECT", "SUCCEEDED", "UNKNOWN"] },
+            { "const": null }
+          ]
+        },
+        "receipt_state": {
+          "enum": [
+            "accepted",
+            "supported",
+            "limited",
+            "unknown",
+            "invalid",
+            "authorized",
+            "transmitting",
+            "provisional_streaming",
+            "completed",
+            "cancelled",
+            "failed",
+            "superseded",
+            "deleted_tombstoned",
+            "body_unavailable"
+          ]
+        },
+        "limitation_codes": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "BODY_UNAVAILABLE",
+              "CURRENT_TRUST_UNKNOWN",
+              "NO_EVIDENCE_ADMITTED",
+              "PARTIAL_SUPPORT",
+              "SCOPE_LIMITED"
+            ]
+          }
+        },
+        "issued_at_ms": { "$ref": "./envelope.schema.json#/$defs/int64" },
+        "valid_from_ms": { "$ref": "./envelope.schema.json#/$defs/int64" },
+        "valid_until_ms": {
+          "anyOf": [{ "$ref": "./envelope.schema.json#/$defs/int64" }, { "const": null }]
+        },
+        "source_refs": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["source_type", "source_id", "source_revision"],
+            "properties": {
+              "source_type": { "enum": ["artifact", "event", "memory", "observation", "result"] },
+              "source_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+              "source_revision": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" }
+            }
+          }
+        },
+        "evidence_refs": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["evidence_type", "evidence_id", "evidence_revision"],
+            "properties": {
+              "evidence_type": {
+                "enum": ["dispatch_attempt", "policy", "review", "runtime", "test"]
+              },
+              "evidence_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+              "evidence_revision": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" }
+            }
+          }
+        },
+        "version_tuple": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "tenant_scope",
+            "purpose_scope",
+            "object_versions",
+            "source_versions",
+            "evidence_versions",
+            "schema_versions",
+            "receipt_format_version",
+            "policy_versions",
+            "configuration_versions",
+            "compiler_version",
+            "retrieval_version",
+            "provider_model_version",
+            "embedding_version",
+            "cache_version",
+            "index_version",
+            "simulation_version",
+            "operation_version",
+            "attempt_version",
+            "algorithm_version",
+            "key_version",
+            "lifecycle_version",
+            "environment_version",
+            "chain_version",
+            "verifier_policy_version",
+            "request_version",
+            "active_memory_version",
+            "intent_approval_version",
+            "key_governance_version",
+            "attempt_stage_version"
+          ],
+          "properties": {
+            "tenant_scope": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["tenant_id", "tenant_authorization_epoch"],
+              "properties": {
+                "tenant_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+                "tenant_authorization_epoch": { "$ref": "./envelope.schema.json#/$defs/uint64" }
+              }
+            },
+            "purpose_scope": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["purpose_id", "purpose_policy_version", "purpose_expiry_fence"],
+              "properties": {
+                "purpose_id": { "$ref": "./envelope.schema.json#/$defs/purpose" },
+                "purpose_policy_version": { "$ref": "./envelope.schema.json#/$defs/version" },
+                "purpose_expiry_fence": { "$ref": "./envelope.schema.json#/$defs/uint64" }
+              }
+            },
+            "object_versions": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 64,
+              "uniqueItems": true,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["object_type", "object_id", "schema_id", "revision_id"],
+                "properties": {
+                  "object_type": {
+                    "enum": [
+                      "artifact",
+                      "belief",
+                      "candidate",
+                      "current_status",
+                      "event",
+                      "memory",
+                      "observation",
+                      "receipt",
+                      "result"
+                    ]
+                  },
+                  "object_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+                  "schema_id": { "$ref": "./envelope.schema.json#/$defs/version" },
+                  "revision_id": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" }
+                }
+              }
+            },
+            "source_versions": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 64,
+              "uniqueItems": true,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "source_type",
+                  "source_id",
+                  "revision_id",
+                  "valid_from_ms",
+                  "valid_until_ms",
+                  "system_time_ms"
+                ],
+                "properties": {
+                  "source_type": {
+                    "enum": ["artifact", "event", "memory", "observation", "result"]
+                  },
+                  "source_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+                  "revision_id": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+                  "valid_from_ms": { "$ref": "./envelope.schema.json#/$defs/int64" },
+                  "valid_until_ms": {
+                    "anyOf": [{ "$ref": "./envelope.schema.json#/$defs/int64" }, { "const": null }]
+                  },
+                  "system_time_ms": { "$ref": "./envelope.schema.json#/$defs/int64" }
+                }
+              }
+            },
+            "evidence_versions": {
+              "type": "array",
+              "minItems": 0,
+              "maxItems": 64,
+              "uniqueItems": true,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["evidence_type", "evidence_id", "evidence_revision", "verifier_class"],
+                "properties": {
+                  "evidence_type": {
+                    "enum": ["dispatch_attempt", "policy", "review", "runtime", "test"]
+                  },
+                  "evidence_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+                  "evidence_revision": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+                  "verifier_class": { "enum": ["automated", "human", "independent"] }
+                }
+              }
+            },
+            "schema_versions": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 64,
+              "uniqueItems": true,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["schema_id", "schema_revision"],
+                "properties": {
+                  "schema_id": { "$ref": "./envelope.schema.json#/$defs/version" },
+                  "schema_revision": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" }
+                }
+              }
+            },
+            "receipt_format_version": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["logical_schema", "canonical_format"],
+              "properties": {
+                "logical_schema": { "const": "continuity.receipt/3" },
+                "canonical_format": { "const": "A10-CANON-01" }
+              }
+            },
+            "policy_versions": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 32,
+              "uniqueItems": true,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["policy_id", "revision", "decision_point", "decision_reference"],
+                "properties": {
+                  "policy_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+                  "revision": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+                  "decision_point": { "enum": ["pre_retrieval", "pre_transmission"] },
+                  "decision_reference": { "$ref": "./envelope.schema.json#/$defs/reference" }
+                }
+              }
+            },
+            "configuration_versions": {
+              "anyOf": [
+                { "const": null },
+                {
+                  "type": "array",
+                  "minItems": 1,
+                  "maxItems": 32,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["configuration_id", "revision"],
+                    "properties": {
+                      "configuration_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+                      "revision": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" }
+                    }
+                  }
+                }
+              ]
+            },
+            "compiler_version": {
+              "anyOf": [
+                { "const": null },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "compiler_id",
+                    "build_revision",
+                    "template_revision",
+                    "normalization_revision"
+                  ],
+                  "properties": {
+                    "compiler_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+                    "build_revision": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+                    "template_revision": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+                    "normalization_revision": {
+                      "$ref": "./envelope.schema.json#/$defs/positiveUint64"
+                    }
+                  }
+                }
+              ]
+            },
+            "retrieval_version": {
+              "anyOf": [
+                { "const": null },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "plan_id",
+                    "fusion_ranking_revision",
+                    "filter_revision",
+                    "limit_budget"
+                  ],
+                  "properties": {
+                    "plan_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+                    "fusion_ranking_revision": {
+                      "$ref": "./envelope.schema.json#/$defs/positiveUint64"
+                    },
+                    "filter_revision": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+                    "limit_budget": { "$ref": "./envelope.schema.json#/$defs/uint64" }
+                  }
+                }
+              ]
+            },
+            "provider_model_version": {
+              "anyOf": [
+                { "const": null },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "adapter_id",
+                    "adapter_revision",
+                    "provider_id",
+                    "provider_revision",
+                    "model_id",
+                    "model_revision",
+                    "parameter_bundle_revision",
+                    "destination_class",
+                    "destination_revision",
+                    "credential_selector_id",
+                    "credential_selector_revision",
+                    "effect_reservation_applicability",
+                    "effect_reservation_id"
+                  ],
+                  "properties": {
+                    "adapter_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+                    "adapter_revision": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+                    "provider_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+                    "provider_revision": {
+                      "$ref": "./envelope.schema.json#/$defs/positiveUint64"
+                    },
+                    "model_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+                    "model_revision": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+                    "parameter_bundle_revision": {
+                      "$ref": "./envelope.schema.json#/$defs/positiveUint64"
+                    },
+                    "destination_class": { "const": "bedrock_primary" },
+                    "destination_revision": {
+                      "$ref": "./envelope.schema.json#/$defs/positiveUint64"
+                    },
+                    "credential_selector_id": {
+                      "$ref": "./envelope.schema.json#/$defs/identifier"
+                    },
+                    "credential_selector_revision": {
+                      "$ref": "./envelope.schema.json#/$defs/positiveUint64"
+                    },
+                    "effect_reservation_applicability": { "const": "typed_none" },
+                    "effect_reservation_id": { "const": null }
+                  }
+                }
+              ]
+            },
+            "embedding_version": {
+              "anyOf": [
+                { "const": null },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "provider_id",
+                    "adapter_revision",
+                    "model_revision",
+                    "dimension",
+                    "distance_metric",
+                    "normalization",
+                    "embedding_space_id",
+                    "embedding_space_revision"
+                  ],
+                  "properties": {
+                    "provider_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+                    "adapter_revision": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+                    "model_revision": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+                    "dimension": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+                    "distance_metric": { "enum": ["cosine", "inner_product", "l2"] },
+                    "normalization": { "enum": ["l2", "none"] },
+                    "embedding_space_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+                    "embedding_space_revision": {
+                      "$ref": "./envelope.schema.json#/$defs/positiveUint64"
+                    }
+                  }
+                }
+              ]
+            },
+            "cache_version": {
+              "anyOf": [
+                { "const": null },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "schema_revision",
+                    "namespace_revision",
+                    "key_derivation_revision",
+                    "source_fence_revision",
+                    "entry_generation"
+                  ],
+                  "properties": {
+                    "schema_revision": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+                    "namespace_revision": {
+                      "$ref": "./envelope.schema.json#/$defs/positiveUint64"
+                    },
+                    "key_derivation_revision": {
+                      "$ref": "./envelope.schema.json#/$defs/positiveUint64"
+                    },
+                    "source_fence_revision": {
+                      "$ref": "./envelope.schema.json#/$defs/positiveUint64"
+                    },
+                    "entry_generation": { "$ref": "./envelope.schema.json#/$defs/uint64" }
+                  }
+                }
+              ]
+            },
+            "index_version": {
+              "anyOf": [
+                { "const": null },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "index_class",
+                    "definition_revision",
+                    "build_generation",
+                    "snapshot_read_ms",
+                    "source_fence"
+                  ],
+                  "properties": {
+                    "index_class": { "enum": ["entity", "temporal", "vector"] },
+                    "definition_revision": {
+                      "$ref": "./envelope.schema.json#/$defs/positiveUint64"
+                    },
+                    "build_generation": { "$ref": "./envelope.schema.json#/$defs/uint64" },
+                    "snapshot_read_ms": { "$ref": "./envelope.schema.json#/$defs/int64" },
+                    "source_fence": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" }
+                  }
+                }
+              ]
+            },
+            "simulation_version": {
+              "anyOf": [
+                { "const": null },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "simulator_revision",
+                    "world_state_revision",
+                    "branch_policy_revision",
+                    "scoring_revision",
+                    "counterfactual_budget"
+                  ],
+                  "properties": {
+                    "simulator_revision": {
+                      "$ref": "./envelope.schema.json#/$defs/positiveUint64"
+                    },
+                    "world_state_revision": {
+                      "$ref": "./envelope.schema.json#/$defs/positiveUint64"
+                    },
+                    "branch_policy_revision": {
+                      "$ref": "./envelope.schema.json#/$defs/positiveUint64"
+                    },
+                    "scoring_revision": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+                    "counterfactual_budget": { "$ref": "./envelope.schema.json#/$defs/uint64" }
+                  }
+                }
+              ]
+            },
+            "operation_version": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "operation_type",
+                "operation_revision",
+                "route_id",
+                "lane_id",
+                "capsule_schema_id",
+                "capsule_schema_revision",
+                "workload_class"
+              ],
+              "properties": {
+                "operation_type": {
+                  "enum": ["embedding", "generation", "managed_mcp_read", "status"]
+                },
+                "operation_revision": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+                "route_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+                "lane_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+                "capsule_schema_id": { "$ref": "./envelope.schema.json#/$defs/version" },
+                "capsule_schema_revision": {
+                  "$ref": "./envelope.schema.json#/$defs/positiveUint64"
+                },
+                "workload_class": { "enum": ["api", "background", "mcp_read"] }
+              }
+            },
+            "attempt_version": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "attempt_id",
+                "attempt_ordinal",
+                "idempotency_id",
+                "claim_fence",
+                "lease_generation",
+                "effect_fence"
+              ],
+              "properties": {
+                "attempt_id": {
+                  "anyOf": [
+                    { "$ref": "./envelope.schema.json#/$defs/identifier" },
+                    { "const": null }
+                  ]
+                },
+                "attempt_ordinal": { "$ref": "./envelope.schema.json#/$defs/uint64" },
+                "idempotency_id": {
+                  "anyOf": [
+                    { "$ref": "./envelope.schema.json#/$defs/identifier" },
+                    { "const": null }
+                  ]
+                },
+                "claim_fence": {
+                  "anyOf": [
+                    { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+                    { "const": null }
+                  ]
+                },
+                "lease_generation": {
+                  "anyOf": [
+                    { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+                    { "const": null }
+                  ]
+                },
+                "effect_fence": {
+                  "anyOf": [
+                    { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+                    { "const": null }
+                  ]
+                }
+              }
+            },
+            "algorithm_version": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "canonicalization_suite",
+                "digest_suite",
+                "signature_suite",
+                "receipt_id_generation_suite",
+                "commitment_suite"
+              ],
+              "properties": {
+                "canonicalization_suite": { "const": "A10-CANON-01" },
+                "digest_suite": { "const": "sha256@1" },
+                "signature_suite": { "enum": ["A10-SIG-ED25519-01", "A10-SIG-P384-01"] },
+                "receipt_id_generation_suite": { "const": "csprng-192@1" },
+                "commitment_suite": { "const": "request-commitment@1" }
+              }
+            },
+            "key_version": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "issuer_id",
+                "signing_key_id",
+                "signing_key_revision",
+                "trust_anchor_set_revision",
+                "revocation_view_revision",
+                "key_valid_from_ms",
+                "key_valid_until_ms"
+              ],
+              "properties": {
+                "issuer_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+                "signing_key_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+                "signing_key_revision": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+                "trust_anchor_set_revision": {
+                  "$ref": "./envelope.schema.json#/$defs/positiveUint64"
+                },
+                "revocation_view_revision": {
+                  "$ref": "./envelope.schema.json#/$defs/positiveUint64"
+                },
+                "key_valid_from_ms": { "$ref": "./envelope.schema.json#/$defs/int64" },
+                "key_valid_until_ms": { "$ref": "./envelope.schema.json#/$defs/int64" }
+              }
+            },
+            "lifecycle_version": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "deletion_epoch",
+                "revision_epoch",
+                "lifecycle_fence",
+                "hold_disposition_revision",
+                "supersession_generation",
+                "body_availability"
+              ],
+              "properties": {
+                "deletion_epoch": { "$ref": "./envelope.schema.json#/$defs/uint64" },
+                "revision_epoch": { "$ref": "./envelope.schema.json#/$defs/uint64" },
+                "lifecycle_fence": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+                "hold_disposition_revision": { "$ref": "./envelope.schema.json#/$defs/uint64" },
+                "supersession_generation": { "$ref": "./envelope.schema.json#/$defs/uint64" },
+                "body_availability": {
+                  "enum": ["available", "never_existed", "retired", "unknown"]
+                }
+              }
+            },
+            "environment_version": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "environment_id",
+                "architecture_profile_id",
+                "deployment_manifest_revision",
+                "isolation_domain_id"
+              ],
+              "properties": {
+                "environment_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+                "architecture_profile_id": { "$ref": "./envelope.schema.json#/$defs/version" },
+                "deployment_manifest_revision": {
+                  "anyOf": [
+                    { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+                    { "const": null }
+                  ]
+                },
+                "isolation_domain_id": { "$ref": "./envelope.schema.json#/$defs/identifier" }
+              }
+            },
+            "chain_version": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "chain_id",
+                "sequence_policy_revision",
+                "checkpoint_policy_revision",
+                "predecessor_verification_policy"
+              ],
+              "properties": {
+                "chain_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+                "sequence_policy_revision": {
+                  "$ref": "./envelope.schema.json#/$defs/positiveUint64"
+                },
+                "checkpoint_policy_revision": {
+                  "$ref": "./envelope.schema.json#/$defs/positiveUint64"
+                },
+                "predecessor_verification_policy": {
+                  "$ref": "./envelope.schema.json#/$defs/version"
+                }
+              }
+            },
+            "verifier_policy_version": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "policy_id",
+                "policy_revision",
+                "accepted_suite_set_revision",
+                "trust_time_rule_revision",
+                "limitation_rule_revision",
+                "projection_rule_revision"
+              ],
+              "properties": {
+                "policy_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+                "policy_revision": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+                "accepted_suite_set_revision": {
+                  "$ref": "./envelope.schema.json#/$defs/positiveUint64"
+                },
+                "trust_time_rule_revision": {
+                  "$ref": "./envelope.schema.json#/$defs/positiveUint64"
+                },
+                "limitation_rule_revision": {
+                  "$ref": "./envelope.schema.json#/$defs/positiveUint64"
+                },
+                "projection_rule_revision": {
+                  "$ref": "./envelope.schema.json#/$defs/positiveUint64"
+                }
+              }
+            },
+            "request_version": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "request_id",
+                "request_contract_id",
+                "request_contract_revision",
+                "request_schema_revision",
+                "authorization_context_revision",
+                "request_commitment_suite",
+                "request_commitment_revision"
+              ],
+              "properties": {
+                "request_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+                "request_contract_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+                "request_contract_revision": {
+                  "$ref": "./envelope.schema.json#/$defs/positiveUint64"
+                },
+                "request_schema_revision": {
+                  "$ref": "./envelope.schema.json#/$defs/positiveUint64"
+                },
+                "authorization_context_revision": {
+                  "$ref": "./envelope.schema.json#/$defs/positiveUint64"
+                },
+                "request_commitment_suite": { "const": "A10-REQ-COMMIT-01" },
+                "request_commitment_revision": { "const": "1" }
+              }
+            },
+            "active_memory_version": {
+              "type": "array",
+              "minItems": 0,
+              "maxItems": 64,
+              "uniqueItems": true,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "memory_id",
+                  "memory_revision",
+                  "activation_decision_id",
+                  "activation_decision_revision",
+                  "source_revision_ids",
+                  "deletion_epoch",
+                  "lifecycle_fence"
+                ],
+                "properties": {
+                  "memory_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+                  "memory_revision": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+                  "activation_decision_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+                  "activation_decision_revision": {
+                    "$ref": "./envelope.schema.json#/$defs/positiveUint64"
+                  },
+                  "source_revision_ids": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 64,
+                    "uniqueItems": true,
+                    "items": { "$ref": "./envelope.schema.json#/$defs/identifier" }
+                  },
+                  "deletion_epoch": { "$ref": "./envelope.schema.json#/$defs/uint64" },
+                  "lifecycle_fence": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" }
+                }
+              }
+            },
+            "intent_approval_version": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "tool_intent_id",
+                "tool_intent_revision",
+                "approval_fact_id",
+                "approval_fact_revision"
+              ],
+              "properties": {
+                "tool_intent_id": {
+                  "anyOf": [
+                    { "$ref": "./envelope.schema.json#/$defs/identifier" },
+                    { "const": null }
+                  ]
+                },
+                "tool_intent_revision": {
+                  "anyOf": [
+                    { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+                    { "const": null }
+                  ]
+                },
+                "approval_fact_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+                "approval_fact_revision": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" }
+              }
+            },
+            "key_governance_version": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "signing_key_owner_id",
+                "verifier_id",
+                "custodian_id",
+                "policy_owner_id",
+                "lifecycle_policy_revision",
+                "rotation_generation",
+                "revocation_generation",
+                "issuance_view_id",
+                "issuance_view_revision",
+                "verifier_current_view_policy_revision"
+              ],
+              "properties": {
+                "signing_key_owner_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+                "verifier_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+                "custodian_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+                "policy_owner_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+                "lifecycle_policy_revision": {
+                  "$ref": "./envelope.schema.json#/$defs/positiveUint64"
+                },
+                "rotation_generation": { "$ref": "./envelope.schema.json#/$defs/uint64" },
+                "revocation_generation": { "$ref": "./envelope.schema.json#/$defs/uint64" },
+                "issuance_view_id": { "$ref": "./envelope.schema.json#/$defs/version" },
+                "issuance_view_revision": {
+                  "$ref": "./envelope.schema.json#/$defs/positiveUint64"
+                },
+                "verifier_current_view_policy_revision": {
+                  "$ref": "./envelope.schema.json#/$defs/positiveUint64"
+                }
+              }
+            },
+            "attempt_stage_version": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "stage_schema_id",
+                "stage_schema_revision",
+                "stage_discriminator",
+                "idempotency_mode",
+                "operation_schema_id",
+                "operation_schema_revision"
+              ],
+              "properties": {
+                "stage_schema_id": { "const": "continuity.attempt-stage/1" },
+                "stage_schema_revision": { "const": "1" },
+                "stage_discriminator": {
+                  "enum": [
+                    "AS0_LOCAL_PREATTEMPT_NO_CLAIM",
+                    "AS1_PREALLOCATED_NOT_CLAIMED",
+                    "AS2_CLAIMED_NO_LEASE",
+                    "AS3_LEASE_BOUND_NO_EFFECT_OR_PRE_EFFECT",
+                    "AS4_LEASE_BOUND_EFFECT_ALLOCATED"
+                  ]
+                },
+                "idempotency_mode": {
+                  "enum": ["IDEMPOTENCY_REQUIRED", "IDEMPOTENCY_SCHEMA_INAPPLICABLE"]
+                },
+                "operation_schema_id": { "$ref": "./envelope.schema.json#/$defs/version" },
+                "operation_schema_revision": {
+                  "$ref": "./envelope.schema.json#/$defs/positiveUint64"
+                }
+              }
+            }
+          }
+        },
+        "sequence": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+        "predecessor_receipt_id": {
+          "anyOf": [{ "$ref": "./envelope.schema.json#/$defs/identifier" }, { "const": null }]
+        },
+        "predecessor_signature_commitment": {
+          "anyOf": [{ "$ref": "./envelope.schema.json#/$defs/sha256" }, { "const": null }]
+        },
+        "checkpoint": {
+          "anyOf": [
+            { "const": null },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["kind", "range_start", "range_end", "root"],
+              "properties": {
+                "kind": { "const": "merkle_sha256_v1" },
+                "range_start": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+                "range_end": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+                "root": { "$ref": "./envelope.schema.json#/$defs/sha256" }
+              }
+            }
+          ]
+        },
+        "signature_suite": { "enum": ["A10-SIG-ED25519-01", "A10-SIG-P384-01"] },
+        "signing_key_id": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["key_id", "key_revision"],
+          "properties": {
+            "key_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+            "key_revision": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" }
+          }
+        },
+        "issuer_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "verifier_policy_id": { "$ref": "./envelope.schema.json#/$defs/version" },
+        "lifecycle_binding": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "deletion_epoch",
+            "revision_epoch",
+            "lifecycle_fence",
+            "hold_disposition_revision",
+            "body_availability"
+          ],
+          "properties": {
+            "deletion_epoch": { "$ref": "./envelope.schema.json#/$defs/uint64" },
+            "revision_epoch": { "$ref": "./envelope.schema.json#/$defs/uint64" },
+            "lifecycle_fence": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+            "hold_disposition_revision": { "$ref": "./envelope.schema.json#/$defs/uint64" },
+            "body_availability": { "enum": ["available", "never_existed", "retired", "unknown"] }
+          }
+        },
+        "supersedes_receipt_ids": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": { "$ref": "./envelope.schema.json#/$defs/identifier" }
+        },
+        "projection_hint": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status_class", "projection_rule_version"],
+          "properties": {
+            "status_class": { "enum": ["current_candidate", "historical_only", "not_projectable"] },
+            "projection_rule_version": { "$ref": "./envelope.schema.json#/$defs/version" }
+          }
+        },
+        "erasable_body_ref": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["body_ref", "body_revision", "body_class"],
+              "properties": {
+                "body_ref": { "$ref": "./envelope.schema.json#/$defs/reference" },
+                "body_revision": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+                "body_class": { "enum": ["request", "response", "receipt_detail"] }
+              }
+            },
+            { "const": null }
+          ]
+        },
+        "scope_commitments": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["domain", "suite", "commitment"],
+            "properties": {
+              "domain": { "enum": ["chain_checkpoint", "scope_binding"] },
+              "suite": { "const": "sha256@1" },
+              "commitment": { "$ref": "./envelope.schema.json#/$defs/sha256" }
+            }
+          }
+        },
+        "request_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "request_commitment": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["commitment", "suite", "suite_version", "commitment_key_generation"],
+              "properties": {
+                "commitment": { "$ref": "./envelope.schema.json#/$defs/sha256" },
+                "suite": { "const": "A10-REQ-COMMIT-01" },
+                "suite_version": { "const": "request-commitment@1" },
+                "commitment_key_generation": {
+                  "$ref": "./envelope.schema.json#/$defs/positiveUint64"
+                }
+              }
+            },
+            { "const": null }
+          ]
+        },
+        "active_memory_revisions": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "memory_id",
+              "memory_revision",
+              "activation_decision_id",
+              "activation_decision_revision",
+              "source_revision_ids",
+              "deletion_epoch",
+              "lifecycle_fence"
+            ],
+            "properties": {
+              "memory_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+              "memory_revision": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+              "activation_decision_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+              "activation_decision_revision": {
+                "$ref": "./envelope.schema.json#/$defs/positiveUint64"
+              },
+              "source_revision_ids": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 64,
+                "uniqueItems": true,
+                "items": { "$ref": "./envelope.schema.json#/$defs/identifier" }
+              },
+              "deletion_epoch": { "$ref": "./envelope.schema.json#/$defs/uint64" },
+              "lifecycle_fence": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" }
+            }
+          }
+        },
+        "tool_intent_binding": {
+          "anyOf": [
+            { "const": null },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "intent_id",
+                "intent_revision",
+                "tool_class",
+                "operation_class",
+                "argument_body_ref",
+                "argument_body_revision",
+                "destination_class",
+                "risk_class",
+                "scope_limit_revision"
+              ],
+              "properties": {
+                "intent_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+                "intent_revision": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+                "tool_class": { "enum": ["managed_mcp_read"] },
+                "operation_class": {
+                  "enum": ["evidence_lineage_summary", "receipt_summary", "task_status_summary"]
+                },
+                "argument_body_ref": { "$ref": "./envelope.schema.json#/$defs/reference" },
+                "argument_body_revision": {
+                  "$ref": "./envelope.schema.json#/$defs/positiveUint64"
+                },
+                "destination_class": { "const": "managed_mcp_same_tenant_read" },
+                "risk_class": { "const": "read_only" },
+                "scope_limit_revision": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" }
+              }
+            }
+          ]
+        },
+        "approval_binding": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "required",
+                "approval_decision_id",
+                "approval_revision",
+                "approval_scope_revision",
+                "expiry_ms"
+              ],
+              "properties": {
+                "required": { "const": true },
+                "approval_decision_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+                "approval_revision": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+                "approval_scope_revision": {
+                  "$ref": "./envelope.schema.json#/$defs/positiveUint64"
+                },
+                "expiry_ms": { "$ref": "./envelope.schema.json#/$defs/int64" }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "not_required",
+                "no_approval_required_fact_id",
+                "fact_revision",
+                "policy_revision"
+              ],
+              "properties": {
+                "not_required": { "const": true },
+                "no_approval_required_fact_id": {
+                  "$ref": "./envelope.schema.json#/$defs/identifier"
+                },
+                "fact_revision": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+                "policy_revision": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" }
+              }
+            }
+          ]
+        },
+        "signing_key_owner_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "key_lifecycle_at_issuance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "lifecycle_policy_revision",
+            "rotation_generation",
+            "revocation_generation",
+            "activated_at_ms",
+            "verification_only_at_ms_or_null",
+            "revoked_at_ms_or_null",
+            "compromise_effective_ms_or_null"
+          ],
+          "properties": {
+            "state": { "const": "active" },
+            "lifecycle_policy_revision": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+            "rotation_generation": { "$ref": "./envelope.schema.json#/$defs/uint64" },
+            "revocation_generation": { "$ref": "./envelope.schema.json#/$defs/uint64" },
+            "activated_at_ms": { "$ref": "./envelope.schema.json#/$defs/int64" },
+            "verification_only_at_ms_or_null": {
+              "anyOf": [{ "$ref": "./envelope.schema.json#/$defs/int64" }, { "const": null }]
+            },
+            "revoked_at_ms_or_null": {
+              "anyOf": [{ "$ref": "./envelope.schema.json#/$defs/int64" }, { "const": null }]
+            },
+            "compromise_effective_ms_or_null": {
+              "anyOf": [{ "$ref": "./envelope.schema.json#/$defs/int64" }, { "const": null }]
+            }
+          }
+        },
+        "issuance_key_view": { "$ref": "./envelope.schema.json#/$defs/version" },
+        "authorized_external_tuple": {
+          "anyOf": [{ "const": null }, { "$ref": "./envelope.schema.json#/$defs/externalTuple" }]
+        },
+        "dispatched_external_tuple": {
+          "anyOf": [{ "const": null }, { "$ref": "./envelope.schema.json#/$defs/externalTuple" }]
+        }
+      }
+    },
+    "signatureEnvelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "envelope_version",
+        "receipt_id",
+        "signature_suite",
+        "signing_key_id",
+        "canonical_bytes_length",
+        "signature"
+      ],
+      "properties": {
+        "envelope_version": { "const": "continuity.receipt-signature/1" },
+        "receipt_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "signature_suite": { "enum": ["A10-SIG-ED25519-01", "A10-SIG-P384-01"] },
+        "signing_key_id": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["key_id", "key_revision"],
+          "properties": {
+            "key_id": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+            "key_revision": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" }
+          }
+        },
+        "canonical_bytes_length": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+        "signature": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 86,
+              "maxLength": 86,
+              "pattern": "^[A-Za-z0-9_-]{86}$"
+            },
+            {
+              "type": "string",
+              "minLength": 128,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_-]{128}$"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

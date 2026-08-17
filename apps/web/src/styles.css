@@ -1,0 +1,192 @@
+:root {
+  color: #102a20;
+  background: #edf6ef;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  min-width: 20rem;
+  background: radial-gradient(circle at top right, #c7ead3, transparent 36rem), #edf6ef;
+}
+.shell {
+  width: min(60rem, calc(100% - 2rem));
+  margin: auto;
+  padding: 3rem 0 5rem;
+}
+header {
+  max-width: 44rem;
+}
+h1 {
+  margin: 0.4rem 0;
+  font:
+    600 clamp(3rem, 9vw, 5.5rem) / 0.9 Georgia,
+    serif;
+  letter-spacing: -0.06em;
+  color: #0c4530;
+}
+.badge {
+  display: inline-block;
+  margin: 0;
+  padding: 0.35rem 0.6rem;
+  background: #0c4530;
+  color: white;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+}
+.claim {
+  margin: 0.55rem 0 0;
+  color: #486158;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+.lede {
+  font-size: 1.15rem;
+  line-height: 1.55;
+}
+.connection {
+  min-height: 1.5rem;
+  color: #486158;
+  font-weight: 650;
+}
+.flow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 2rem 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+.flow li {
+  border: 1px solid #b8ccbd;
+  padding: 0.55rem 0.7rem;
+  text-transform: capitalize;
+}
+.flow [aria-current],
+.history button[aria-pressed="true"] {
+  background: #d9f0df;
+  border-color: #0c4530;
+}
+.flow .done {
+  color: #386a4d;
+}
+.actions,
+.history {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.history {
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+.history button {
+  background: #edf6ef;
+  color: #0c4530;
+  border: 1px solid #0c4530;
+  font-size: 0.85rem;
+}
+button {
+  border: 0;
+  border-radius: 0.25rem;
+  background: #0c4530;
+  color: white;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 750;
+  padding: 0.75rem 1rem;
+}
+button + button {
+  background: #1e704c;
+}
+button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+button:focus-visible {
+  outline: 3px solid #e09b39;
+  outline-offset: 3px;
+}
+.panel {
+  margin-top: 1.5rem;
+  border-top: 4px solid #0c4530;
+  background: rgb(255 255 255 / 0.8);
+  padding: 1.4rem;
+  box-shadow: 0 1rem 3rem rgb(25 73 45 / 0.09);
+}
+.panel h2,
+h1 {
+  font-family: Georgia, serif;
+}
+.panel h2 {
+  margin: 0 0 1rem;
+  text-transform: capitalize;
+}
+.empty {
+  color: #486158;
+}
+.error {
+  color: #8a3118;
+  font-weight: 700;
+}
+.answer {
+  font-size: 1.12rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+.details {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(20rem, 1.25fr);
+  gap: 2rem;
+}
+.details h3 {
+  margin: 1.5rem 0 0.5rem;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.details li {
+  margin: 0.35rem 0;
+  overflow-wrap: anywhere;
+}
+dl,
+dl div {
+  display: grid;
+  gap: 0.5rem 1rem;
+}
+dl {
+  margin: 0;
+}
+dl div {
+  grid-template-columns: max-content 1fr;
+}
+dt {
+  font-weight: 750;
+}
+dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 42rem) {
+  .shell {
+    padding-top: 2rem;
+  }
+  .flow li {
+    width: 100%;
+  }
+  .actions button {
+    width: 100%;
+  }
+  .details {
+    grid-template-columns: 1fr;
+  }
+  dl div {
+    grid-template-columns: 1fr;
+    gap: 0.1rem;
+    margin-bottom: 0.6rem;
+  }
+}

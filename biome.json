@@ -1,0 +1,55 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.3.15/schema.json",
+  "files": {
+    "includes": [
+      "**",
+      "!.worktrees",
+      "!ci/h01-cleanroom-policy-r1.json",
+      "!ci/h01-cleanroom-policy-r2.json",
+      "!ci/h02c-cleanroom-policy-r1.json",
+      "!ci/h11b-cleanroom-policy-r18.json",
+      "!ci/h11b-cleanroom-policy-r19.json",
+      "!ci/h11b-cleanroom-policy-r31.json",
+      "!ci/h11b-cleanroom-policy-r35.json",
+      "!ci/h11b-cleanroom-policy-r39.json",
+      "!ci/h11b-cleanroom-policy-r42.json",
+      "!ci/h11b-cleanroom-policy-r45.json",
+      "!ci/h11b-cleanroom-policy-r46.json",
+      "!ci/h11b-cleanroom-policy-r47.json",
+      "!ci/h11b-cleanroom-policy-r48.json",
+      "!ci/h11b-cleanroom-policy-r49.json",
+      "!ci/h11b-cleanroom-policy-r50.json",
+      "!docs/hackathon/evidence/h01-security-baseline.json",
+      "!**/dist",
+      "!**/dist-types",
+      "!dist-tools",
+      "!**/coverage",
+      "!**/node_modules",
+      "!ci/generated",
+      "!ci/c05-cleanroom-policy-r1.json",
+      "!ci/c05-cleanroom-policy-r4.json",
+      "!ci/installed-license-evidence.json",
+      "!ci/tool-payload-inventory.json",
+      "!packages/contracts/src/generated",
+      "!tests/architecture/fixtures"
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "lineWidth": 100
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true
+    }
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "double",
+      "semicolons": "always",
+      "trailingCommas": "all"
+    }
+  }
+}

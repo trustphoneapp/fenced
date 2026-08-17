@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:zintus-continuity:contracts:v1:provider",
+  "title": "Continuity disjoint provider metadata v1",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "contractFamily",
+        "variant",
+        "tenantId",
+        "requestedPurpose",
+        "serverPurpose",
+        "operationId",
+        "attemptId",
+        "providerRequestId",
+        "providerRequestRevision",
+        "provider",
+        "model",
+        "providerRole",
+        "failover",
+        "operation",
+        "decision",
+        "outcome",
+        "outputTrust",
+        "policyVersion",
+        "contextCompilerVersion",
+        "errorCode"
+      ],
+      "properties": {
+        "schemaVersion": { "$ref": "./envelope.schema.json#/$defs/schemaVersion" },
+        "contractFamily": { "const": "provider" },
+        "variant": { "const": "denied" },
+        "tenantId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "requestedPurpose": { "$ref": "./envelope.schema.json#/$defs/purpose" },
+        "serverPurpose": { "$ref": "./envelope.schema.json#/$defs/purpose" },
+        "operationId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "attemptId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "providerRequestId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "providerRequestRevision": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+        "provider": { "const": "amazon-bedrock@1" },
+        "model": { "$ref": "./envelope.schema.json#/$defs/version" },
+        "providerRole": { "const": "primary" },
+        "failover": { "const": "disabled" },
+        "operation": { "enum": ["embedding", "generation"] },
+        "decision": { "const": "deny" },
+        "outcome": { "enum": ["denied", "unknown"] },
+        "outputTrust": { "const": "untrusted_data" },
+        "policyVersion": { "$ref": "./envelope.schema.json#/$defs/version" },
+        "contextCompilerVersion": { "$ref": "./envelope.schema.json#/$defs/version" },
+        "errorCode": {
+          "enum": ["PROVIDER_POLICY_DENIED", "PROVIDER_SCOPE_CHANGED", "PROVIDER_VERSION_UNKNOWN"]
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "contractFamily",
+        "variant",
+        "tenantId",
+        "requestedPurpose",
+        "serverPurpose",
+        "operationId",
+        "attemptId",
+        "providerRequestId",
+        "providerRequestRevision",
+        "provider",
+        "model",
+        "providerRole",
+        "failover",
+        "operation",
+        "decision",
+        "outcome",
+        "outputTrust",
+        "policyVersion",
+        "contextCompilerVersion",
+        "errorCode"
+      ],
+      "properties": {
+        "schemaVersion": { "$ref": "./envelope.schema.json#/$defs/schemaVersion" },
+        "contractFamily": { "const": "provider" },
+        "variant": { "const": "result" },
+        "tenantId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "requestedPurpose": { "$ref": "./envelope.schema.json#/$defs/purpose" },
+        "serverPurpose": { "$ref": "./envelope.schema.json#/$defs/purpose" },
+        "operationId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "attemptId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "providerRequestId": { "$ref": "./envelope.schema.json#/$defs/identifier" },
+        "providerRequestRevision": { "$ref": "./envelope.schema.json#/$defs/positiveUint64" },
+        "provider": { "const": "amazon-bedrock@1" },
+        "model": { "$ref": "./envelope.schema.json#/$defs/version" },
+        "providerRole": { "const": "primary" },
+        "failover": { "const": "disabled" },
+        "operation": { "enum": ["embedding", "generation"] },
+        "decision": { "const": "invoke" },
+        "outcome": { "enum": ["failed", "partial", "succeeded", "unknown"] },
+        "outputTrust": { "const": "untrusted_data" },
+        "policyVersion": { "$ref": "./envelope.schema.json#/$defs/version" },
+        "contextCompilerVersion": { "$ref": "./envelope.schema.json#/$defs/version" },
+        "inputRef": { "$ref": "./envelope.schema.json#/$defs/reference" },
+        "outputRef": { "$ref": "./envelope.schema.json#/$defs/reference" },
+        "errorCode": {
+          "enum": [
+            "PROVIDER_NONE",
+            "PROVIDER_PARTIAL",
+            "PROVIDER_RESULT_UNAVAILABLE",
+            "PROVIDER_TERMINAL_FAILURE"
+          ]
+        }
+      }
+    }
+  ]
+}
