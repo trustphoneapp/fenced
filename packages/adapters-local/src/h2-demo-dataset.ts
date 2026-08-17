@@ -30,7 +30,7 @@ export const h2DemoDataset: DemoDataset = Object.freeze({
   facts: Object.freeze([
     Object.freeze({
       factId: "1".repeat(48),
-      content: "Continuity launch day is monday for the hackathon demo",
+      content: "Fenced launch day is monday for the hackathon demo",
       sensitivity: "public" as const,
       sourceRef,
     }),
@@ -49,6 +49,6 @@ export const h2DemoDataset: DemoDataset = Object.freeze({
   ]),
   supersede: Object.freeze({
     factId: "1".repeat(48),
-    content: "Continuity launch day is sunday for the hackathon demo",
+    content: "Fenced launch day is sunday for the hackathon demo",
   }),
 });

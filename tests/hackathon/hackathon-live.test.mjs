@@ -124,8 +124,8 @@ function harness(overrides = {}) {
           },
           {
             content: corrected
-              ? "Continuity launch day is sunday for the hackathon demo"
-              : "Continuity launch day is monday for the hackathon demo",
+              ? "Fenced launch day is sunday for the hackathon demo"
+              : "Fenced launch day is monday for the hackathon demo",
             deletionFence: "0",
             factId: launchId,
             revision: corrected ? "2" : "1",
@@ -627,7 +627,7 @@ describe("governed hackathon live orchestrator", () => {
         async retrieveSnapshot() {
           const authorized = [
             {
-              content: "Continuity launch day is monday for the hackathon demo",
+              content: "Fenced launch day is monday for the hackathon demo",
               deletionFence: "0",
               factId: launchId,
               revision: "1",

@@ -6,7 +6,7 @@ import { createLocalHackathonRuntimeCandidate } from "../../apps/api/src/live-ru
 const sessionDigest = `${"a".repeat(48)}${"b".repeat(16)}`;
 const publicRows = [
   {
-    content: "Continuity launch day is monday for the hackathon demo",
+    content: "Fenced launch day is monday for the hackathon demo",
     deletion_fence: "0",
     distance: 0,
     fact_id: "1".repeat(48),

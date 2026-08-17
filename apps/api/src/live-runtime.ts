@@ -15,19 +15,19 @@ import {
   hackathonLiveProfile,
 } from "@zintus-continuity/application";
 
-const question = "What is Continuity's launch day, and how can judges inspect the evidence?";
+const question = "What is Fenced's launch day, and how can judges inspect the evidence?";
 const embeddingInputs = new Set([
-  "Continuity launch day is monday for the hackathon demo",
+  "Fenced launch day is monday for the hackathon demo",
   "Internal budget ceiling is nine units — restricted synthetic",
   "Judges query disclosure receipts through Managed MCP read-only",
-  "Continuity launch day is sunday for the hackathon demo",
+  "Fenced launch day is sunday for the hackathon demo",
   question,
 ]);
 const launchFactId = "1".repeat(48);
 const restrictedFactId = "2".repeat(48);
 const evidenceFactId = "3".repeat(48);
-const monday = "Continuity launch day is monday for the hackathon demo";
-const sunday = "Continuity launch day is sunday for the hackathon demo";
+const monday = "Fenced launch day is monday for the hackathon demo";
+const sunday = "Fenced launch day is sunday for the hackathon demo";
 const evidence = "Judges query disclosure receipts through Managed MCP read-only";
 const digest = (value: string) => createHash("sha256").update(value, "utf8").digest("hex");
 function isProxy(value: unknown): boolean {

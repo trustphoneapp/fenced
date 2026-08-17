@@ -117,7 +117,7 @@ const correctionInput = {
   expectedRevision: "1",
   factId,
   replacement: {
-    content: "Continuity launch day is sunday for the hackathon demo",
+    content: "Fenced launch day is sunday for the hackathon demo",
     embedding,
     sensitivity: "public",
     sourceRef,

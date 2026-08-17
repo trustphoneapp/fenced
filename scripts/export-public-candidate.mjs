@@ -75,23 +75,23 @@ const restrictedFiles = new Map([
   ["apps/api/src/index.ts", "7e748a561a237c3e3745407b5c11316ceb6eeaf3cbe854c376841e5f860c5fb9"],
   [
     "apps/api/src/live-runtime.ts",
-    "4725abbcdcf49abde8de81fee5d935a2bd2aacb796b2753b61d4f060ae9361e6",
+    "902b5e851486bf5ee6e1ca9affcb359d60e9e67b66e2ddd5c8ed0cd1c30ddd2d",
   ],
   [
     "packages/adapters-local/src/h2-demo-dataset.ts",
-    "1a40d118390a99720e1c96cbfe3c8f65541c0a56889a83e36b13fa93bff19208",
+    "3076a1826c96a75569fe40cc21331a9399cb8ecc8aa9b682da9dbd1736ed74dc",
   ],
   [
     "packages/application/src/hackathon-live.ts",
-    "113a204c3715eb3df8ba6c81931efc23dbd784d30013d63ddb56d09352c8598d",
+    "0217d0a88f4eb914508aedf623e626bf9f72a761f227ad92f5fdf591da639243",
   ],
   [
     "tests/hackathon/h16b-live-runtime.test.mjs",
-    "6b42a4901bf139e5375d812691838c15755b4909d3fbe969bc83f307c13b457e",
+    "5641b9a019393c1ba6fec4a220dd8f9da01be05744f846725e6d95504225151e",
   ],
   [
     "tests/hackathon/hackathon-live.test.mjs",
-    "44f07faee2b761e31d7f256fc82908ee5323d4985a095beaad8fd23655cd2b55",
+    "2949f2737833cab2f20920f0b3ec5ba7b3161288cf703a060e7e34c81c5648de",
   ],
   [
     "tests/hackathon/live-api.test.mjs",

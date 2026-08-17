@@ -17,7 +17,7 @@ import "./styles.css";
 const readyBadge = "READY · NO SESSION";
 const liveBadge = "SESSION · LIVE";
 const lostBadge = "SESSION · CONNECTION LOST";
-const question = "What is Continuity's launch day, and how can judges inspect the evidence?";
+const question = "What is Fenced's launch day, and how can judges inspect the evidence?";
 
 const glossary: Readonly<Record<string, string>> = Object.freeze({
   Receipt:
@@ -184,11 +184,28 @@ function DiffColumn({ tokens, side }: { tokens: readonly DiffToken[]; side: "del
   );
 }
 
+/** Count maximal same-kind runs; a clean word swap has few, a structurally mismatched pair has many. */
+function diffSegments(tokens: readonly DiffToken[]): number {
+  let segments = 0;
+  let last: DiffToken["kind"] | undefined;
+  for (const token of tokens) {
+    if (token.kind !== last) segments += 1;
+    last = token.kind;
+  }
+  return segments;
+}
+
 function DiffView({ before, after }: { before: LiveResult; after: LiveResult }) {
   if (!before.answer || !after.answer || !before.receipt || !after.receipt) return null;
   // The model sometimes emits markdown emphasis; strip the markers so the diff compares prose only.
   const plain = (text: string) => text.replaceAll("**", "");
   const tokens = wordDiff(plain(before.answer), plain(after.answer));
+  // Nova's phrasing and formatting vary call to call. When the two answers are structurally
+  // different (one has headings, one doesn't; very different length) the word diff degrades into
+  // scattered single-word fragments instead of one clean swap. Detect that and fall back to showing
+  // the two full answers rather than an interleaved mess.
+  const segments = diffSegments(tokens);
+  const fragmented = segments > 10 && tokens.length / Math.max(segments, 1) < 3;
   const changes: string[] = [];
   for (const entry of after.recalled ?? []) {
     const prior = before.recalled?.find((item) => item.factId === entry.factId);
@@ -212,12 +229,15 @@ function DiffView({ before, after }: { before: LiveResult; after: LiveResult }) 
       <h2 id="diff-title">Before vs after correction</h2>
       <p className="lede-small">
         Same fixed question. The only change between these two answers is the correction committed
-        in step 3. Removed words are struck; added words are underlined.
+        in step 3.{" "}
+        {fragmented
+          ? "The model phrased these two answers differently enough that a word-level diff would be unreadable, so both full answers are shown instead."
+          : "Removed words are struck; added words are underlined."}
       </p>
       <div className="diff-grid">
         <div>
           <h3>Ask (before)</h3>
-          <DiffColumn tokens={tokens} side="del" />
+          {fragmented ? <Answer text={before.answer} /> : <DiffColumn tokens={tokens} side="del" />}
         </div>
         <ul className="gutter" aria-label="What changed">
           {changes.map((change) => (
@@ -226,7 +246,7 @@ function DiffView({ before, after }: { before: LiveResult; after: LiveResult }) 
         </ul>
         <div>
           <h3>Ask (after)</h3>
-          <DiffColumn tokens={tokens} side="ins" />
+          {fragmented ? <Answer text={after.answer} /> : <DiffColumn tokens={tokens} side="ins" />}
         </div>
       </div>
     </section>
