@@ -6,6 +6,13 @@ import { createHackathonApi, type HttpApiV2Event } from "./index.js";
 const region = "us-east-1";
 const secretEndpoint = "disabled://not-configured";
 const python = "/opt/python/bin/python3.13";
+/**
+ * The image copies the pinned Lambda python runtime to /opt/python and its libssl/libcrypto to
+ * /opt/python/lib, so the interpreter only resolves libpython3.13.so.1.0 when the loader path is
+ * present. The child environment is a complete replacement rather than an overlay, so this must be
+ * passed explicitly; omitting it makes python exit 127 before asm-exec ever runs.
+ */
+const pythonLoaderPath = "/opt/python/lib";
 const asmExec = "/opt/zc/asm-exec";
 const worker = "/var/task/one-request-worker.cjs";
 const maximumInputBytes = 1_024;
@@ -103,6 +110,7 @@ function childEnvironment(value: unknown): Readonly<Record<string, string>> | un
     COCKROACH_DATABASE_URL: `{{resolve:secretsmanager:${secretArn}:SecretString}}`,
     LANG: "C",
     LC_ALL: "C",
+    LD_LIBRARY_PATH: pythonLoaderPath,
     TZ: "UTC",
   });
 }
@@ -227,7 +235,7 @@ export function createAsmExecHackathonRunner(input: unknown) {
           detached: true,
           env,
           shell: false,
-          stdio: ["pipe", "pipe", "ignore"],
+          stdio: ["pipe", "pipe", "inherit"],
         });
         return await supervise(child, payload, killGroup);
       } catch {

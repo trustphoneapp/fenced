@@ -128,7 +128,7 @@ describe("H16D request-lazy asm-exec image entry", () => {
     expect(options).toMatchObject({
       detached: true,
       shell: false,
-      stdio: ["pipe", "pipe", "ignore"],
+      stdio: ["pipe", "pipe", "inherit"],
     });
     expect(options.env).toEqual({
       AWS_ACCESS_KEY_ID: "synthetic-access-key",
@@ -141,6 +141,7 @@ describe("H16D request-lazy asm-exec image entry", () => {
       COCKROACH_DATABASE_URL: `{{resolve:secretsmanager:${secretArn}:SecretString}}`,
       LANG: "C",
       LC_ALL: "C",
+      LD_LIBRARY_PATH: "/opt/python/lib",
       TZ: "UTC",
     });
     expect(JSON.stringify(options)).not.toContain("FORBIDDEN_AMBIENT");

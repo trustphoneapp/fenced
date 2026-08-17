@@ -47,7 +47,9 @@ function poolForAsk(rows = publicRows) {
             )
           )
             return { rows: [{ deletion_fence: "0" }] };
-          if (sql.includes("FORCE_INDEX=memory_facts_titan_scope_l2"))
+          // The DVI recall no longer carries an index hint: CockroachDB cannot combine a vector
+          // index scan with the executor's RLS policy. Route on the distance projection instead.
+          if (sql.includes("embedding <-> $3::vector"))
             return sql.includes("sensitivity = 'public'")
               ? { rows }
               : {

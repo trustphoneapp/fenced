@@ -29,23 +29,35 @@ Live endpoints (deployed in `us-east-1`, account-isolated, arm64):
 
 | Capability | Implemented and locally tested | Live evidence |
 | --- | --- | --- |
-| Fixed five-step orchestrator and receipts | Yes, E-0093 | Image pushed; `/api/demo` pending function update |
+| Fixed five-step orchestrator and receipts | Yes, E-0093 | All five steps return `200` on both the CloudFront and API Gateway origins |
 | Strict HTTP boundary | Yes, E-0094 | `GET /api/health` returns `200 {"status":"healthy"}` |
 | Live-only React interface | Yes, E-0095 | Served `200` through CloudFront |
-| CockroachDB schema and vector indexes | Yes, migrations `0001`–`0009` | Applied: 30 relations; both vector indexes present |
-| Least-privilege database identity | Yes | Verified: `continuity_app` inherits executor/reservation/session roles only |
-| Bedrock Titan + Nova composition | Yes | Invoked live: `hackathon_usage_summary_v1` records Titan and Nova calls |
-| Read-only Managed MCP query pack | Yes, E-0096 | `dvi-plan` plans; three summary-view calls blocked by grants |
-| Rolling quota and provider control | Yes | Seeded live: `hackathon_runtime_control` enabled, quota lock present |
+| CockroachDB schema and vector indexes | Yes, migrations `0001`–`0010` | Applied to CockroachDB v26.2.5; 30 relations; both vector indexes present |
+| Least-privilege database identity | Yes | `continuity_app` inherits only executor / reservation / session roles; each step runs under `SET LOCAL ROLE` |
+| Policy-withheld disclosure | Yes | Live receipts recall 2 revisions and withhold 1 with `reason: sensitivity_policy` |
+| Correction lineage | Yes | `correct` supersedes revision 1 to 2; `ask_after` answers from revision 2 |
+| Bedrock Titan + Nova composition | Yes | Live receipts carry `amazon.titan-embed-text-v2:0`, `amazon.nova-lite-v1:0`, token counts and a provider request id |
+| Read-only Managed MCP query pack | Yes, E-0096 | `dvi-plan` names the vector index; three summary-view calls are reserved to `zc_continuity_mcp_reader` |
+| Rolling quota and provider control | Yes | Enforced live: quota lock taken `FOR UPDATE`, caps read from `hackathon_usage_summary_v1` |
 
-Verified against the live cluster and account on 2026-08-17. Two items are knowingly incomplete:
+Verified end to end against the live cluster and account on 2026-08-17.
 
-1. `POST /api/demo` still answers `503` because the deployed function image predates the in-process
-   composition fix. The corrected single-platform image is built and pushed to ECR; the function
-   code update is the remaining step.
-2. The vector index is present and the forced-index plan is accepted, but it is not yet *named* in
-   an `EXPLAIN` plan because the memory tables are still empty. That proof requires one successful
-   five-step run, which item 1 gates.
+### Vector indexing, stated precisely
+
+`memory_facts_titan_scope_l2` is a real CockroachDB vector index over
+`(tenant_id, server_purpose, embedding_space, fact_status, sensitivity, embedding vector_l2_ops)`.
+`EXPLAIN` on the `dvi-plan` query names it and shows a `• vector search` node.
+
+The live recall path does **not** use it, and that is a deliberate trade rather than an oversight.
+`memory_facts` runs with row-level security forced on, and recall executes as
+`zc_continuity_executor` under that policy. CockroachDB cannot combine a vector index scan with an
+RLS policy on the same relation: `FORCE_INDEX` raises `42809` and `NO_FULL_SCAN` raises `XXUUU`.
+Policy before retrieval is the guarantee this project exists to make, so the index hint was dropped
+instead of the policy, and recall runs as a policy-filtered scan.
+
+Two further honest limits: the query vector must be a constant for the index to be selected at all,
+and the E2 grant gaps on `continuity.events` and `continuity.payload_anchors` are deliberately not
+granted, because the hackathon path never writes those children.
 
 Implemented, tested, deployed, and demonstrated are intentionally different labels, and the table
 above keeps them apart rather than collapsing them into a single claim.
@@ -78,9 +90,11 @@ local runs only.
 - Policy runs before vector retrieval and again before every Bedrock transmission.
 - Only fixed synthetic data is allowed; the restricted body reaches Titan during initial embedding
   but never Nova generation or the public answer.
-- CockroachDB is the canonical memory and receipt store. Migrations `0001` through `0009`, including
-  the additive `0009` rolling-24-hour session-quota repair, are applied to the live cluster
-  (CockroachDB v26.2.5) and verified to expose 30 relations in the `continuity` schema.
+- CockroachDB is the canonical memory and receipt store. Migrations `0001` through `0010` are
+  applied to the live cluster (CockroachDB v26.2.5) and verified to expose 30 relations in the
+  `continuity` schema. `0010` adds the read grants CockroachDB requires for foreign-key validation:
+  unlike PostgreSQL, it checks a foreign key inside the writing statement's query plan, so a role
+  that inserts into a child table must also hold `SELECT` on the referenced parent.
 - The local provider-control operator does not prove a live state. Disabling prevents new
   reservations but cannot cancel an invocation already in flight; operators must first quiesce
   traffic, disable, and wait at least 25 seconds before assuming no prior invocation remains.

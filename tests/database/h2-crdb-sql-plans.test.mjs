@@ -95,7 +95,8 @@ describe("h2 crdb sql plans", () => {
     );
     expect(retract.sql).toContain("fact_status = 'retracted'");
     expect(retract.sql).toContain("current.fact_revision = $4");
-    expect(retract.sql).toContain("array_fill(0::float8, ARRAY[1024])");
+    // CockroachDB has no array_fill(); the zero vector is built with generate_series instead.
+    expect(retract.sql).toContain("ARRAY(SELECT 0::float8 FROM generate_series(1, 1024))::vector");
     const supersede = {
       disposition: "supersede",
       expectedRevision: "1",

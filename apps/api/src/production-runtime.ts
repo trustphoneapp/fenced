@@ -73,9 +73,25 @@ function databaseUrl(value: unknown): string | undefined {
 function poolPort(value: unknown): HackathonPoolLike | undefined {
   try {
     if (value === null || typeof value !== "object" || isProxy(value)) return undefined;
-    const connect =
-      Object.getOwnPropertyDescriptor(value, "connect")?.value ??
-      Object.getOwnPropertyDescriptor(Object.getPrototypeOf(value), "connect")?.value;
+    /**
+     * `pg` exports a subclass: `pg.Pool` is a `BoundPool extends Pool`, so `connect` is two
+     * prototype levels above the instance. Walk a bounded chain and stop before Object.prototype so
+     * a polluted Object.prototype can never satisfy the port.
+     */
+    let connect: unknown;
+    let candidate: object | null = value;
+    for (
+      let depth = 0;
+      depth < 8 && candidate !== null && candidate !== Object.prototype;
+      depth += 1
+    ) {
+      const descriptor = Object.getOwnPropertyDescriptor(candidate, "connect");
+      if (descriptor && "value" in descriptor) {
+        connect = descriptor.value;
+        break;
+      }
+      candidate = Object.getPrototypeOf(candidate) as object | null;
+    }
     if (typeof connect !== "function") return undefined;
     const pool = value as HackathonPoolLike;
     return Object.freeze({ connect: () => pool.connect() });
@@ -112,6 +128,9 @@ export function createProductionHackathonRuntime(input: unknown) {
         runtime ??= initialize();
         return await (await runtime).run(value);
       } catch {
+        // Drop the memoized runtime so a transient initialization failure cannot poison the
+        // container for the rest of its life; the next request retries initialization.
+        runtime = undefined;
         return Object.freeze({ outcome: "unknown" as const });
       }
     },

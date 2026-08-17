@@ -13,9 +13,16 @@ function isProxy(value: unknown): boolean {
   return nodeUtilTypes.isProxy(value);
 }
 
+/**
+ * Recall runs under row-level security as zc_continuity_executor. CockroachDB cannot combine a
+ * vector index scan with an RLS policy on the same relation: FORCE_INDEX raises 42809 ("index
+ * cannot be used for this query") and NO_FULL_SCAN raises XXUUU. The index is real and the planner
+ * does name it for an identity that bypasses RLS, which is how the DVI proof is taken. Policy
+ * before retrieval is the product guarantee, so the hint is dropped rather than the policy.
+ */
 export const hackathonDviPublicSql = `SELECT fact_id, fact_revision::string AS fact_revision, content,
   embedding <-> $3::vector AS distance, deletion_fence::string AS deletion_fence
-FROM continuity.memory_facts@{FORCE_INDEX=memory_facts_titan_scope_l2,NO_FULL_SCAN}
+FROM continuity.memory_facts
 WHERE tenant_id = $1 AND server_purpose = $2
   AND embedding_space = 'zc.bedrock-titan-v2.1024'
   AND fact_status = 'active' AND sensitivity = 'public'
@@ -24,7 +31,7 @@ ORDER BY embedding <-> $3::vector LIMIT $4`;
 export const hackathonDviRestrictedSql = `SELECT fact_id, fact_revision::string AS fact_revision,
   embedding <-> $3::vector AS distance, deletion_fence::string AS deletion_fence,
   'sensitivity_policy'::string AS reason
-FROM continuity.memory_facts@{FORCE_INDEX=memory_facts_titan_scope_l2,NO_FULL_SCAN}
+FROM continuity.memory_facts
 WHERE tenant_id = $1 AND server_purpose = $2
   AND embedding_space = 'zc.bedrock-titan-v2.1024'
   AND fact_status = 'active' AND sensitivity = 'restricted'
