@@ -232,7 +232,7 @@ WHERE tenant_id = $1 AND server_purpose = $2 AND fact_id = $3
       return Object.freeze({
         outcome: "sql" as const,
         sql: `UPDATE continuity.memory_facts
-SET fact_status = 'retracted', content = '', embedding = array_fill(0::float8, ARRAY[1024])::vector
+SET fact_status = 'retracted', content = '', embedding = ARRAY(SELECT 0::float8 FROM generate_series(1, 1024))::vector
 WHERE tenant_id = $1 AND server_purpose = $2 AND fact_id = $3
   AND EXISTS (
     SELECT 1 FROM continuity.memory_facts AS current

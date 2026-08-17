@@ -20,7 +20,7 @@
     {
       "id": "dvi-plan",
       "tool": "explain_query",
-      "query": "SELECT fact_id, fact_revision FROM continuity.memory_facts@{FORCE_INDEX=memory_facts_titan_scope_l2,NO_FULL_SCAN} WHERE tenant_id = '000000000000000000000000000000000000000000000000' AND server_purpose = 'hackathon-demo' AND embedding_space = 'zc.bedrock-titan-v2.1024' AND fact_status = 'active' AND sensitivity = 'public' ORDER BY embedding <-> array_fill(0::FLOAT8, ARRAY[1024])::VECTOR LIMIT 5"
+      "query": "SELECT fact_id, fact_revision FROM continuity.memory_facts@{FORCE_INDEX=memory_facts_titan_scope_l2,NO_FULL_SCAN} WHERE tenant_id = (SELECT tenant_id FROM continuity.memory_facts WHERE server_purpose = 'hackathon-demo' AND fact_status = 'active' LIMIT 1) AND server_purpose = 'hackathon-demo' AND embedding_space = 'zc.bedrock-titan-v2.1024' AND fact_status = 'active' AND sensitivity = 'public' ORDER BY embedding <-> ARRAY(SELECT 0::FLOAT8 FROM generate_series(1, 1024))::VECTOR LIMIT 5"
     }
   ]
 }
